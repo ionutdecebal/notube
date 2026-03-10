@@ -511,29 +511,29 @@ export default function LandingPage() {
   };
 
   const composerDisabled = stage === "loading" || stage === "reflecting" || stage === "quiz";
-  const composerPlaceholder = "Type your topic. Optional preferences: beginner, 20 min, quick overview";
+  const composerPlaceholder = "Type a topic (optional: beginner, 20 min, quick)";
   const composerValue = stage === "reflecting" ? `Think mode ${toMmss(reflectionSecondsLeft)} • input locked` : composerText;
 
   if (stage === "idle") {
     return (
-      <main className="relative flex min-h-screen items-center justify-center px-4 py-8">
-        <div className="w-full max-w-3xl space-y-8 text-center">
-          <p className="text-xl font-light uppercase tracking-[0.3em] text-zinc-400">NOTUBE</p>
-          <h1 className="text-balance text-4xl font-medium leading-[1.08] tracking-tight text-zinc-100 sm:text-5xl">
+      <main className="relative flex min-h-[100svh] items-start justify-center px-4 pb-8 pt-16 sm:items-center sm:py-8">
+        <div className="w-full max-w-3xl space-y-5 text-center sm:space-y-8">
+          <p className="text-lg font-light uppercase tracking-[0.24em] text-zinc-400 sm:text-xl sm:tracking-[0.3em]">NOTUBE</p>
+          <h1 className="text-balance text-3xl font-medium leading-[1.08] tracking-tight text-zinc-100 sm:text-5xl">
             Built for focus.
           </h1>
-          <p className="text-base font-light text-zinc-500 sm:text-lg">
+          <p className="text-sm font-light text-zinc-500 sm:text-lg">
             Distraction-free YouTube for learning.
           </p>
 
           <form onSubmit={submitComposer} className="mx-auto w-full max-w-2xl">
-            <label className="relative block rounded-2xl border border-white/85 bg-transparent px-5 py-4">
+            <label className="relative block rounded-2xl border border-white/85 bg-transparent px-4 py-3 sm:px-5 sm:py-4">
               <input
                 ref={composerRef}
                 value={composerValue}
                 onChange={(event) => setComposerText(event.target.value)}
                 placeholder={composerPlaceholder}
-                className="w-full bg-transparent pr-3 text-base text-zinc-100 outline-none placeholder:text-zinc-500"
+                className="w-full bg-transparent pr-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 sm:pr-3 sm:text-base"
               />
             </label>
           </form>
@@ -543,10 +543,10 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="relative min-h-screen bg-transparent">
-      <div className="mx-auto flex w-full max-w-4xl flex-col px-4 pb-36 pt-8 sm:px-6">
-        <header className="mb-5 flex items-center justify-between">
-          <p className="text-xl font-light uppercase tracking-[0.3em] text-zinc-400">NOTUBE</p>
+    <main className="relative min-h-[100svh] bg-transparent">
+      <div className="mx-auto flex w-full max-w-4xl flex-col px-3 pb-32 pt-4 sm:px-6 sm:pb-36 sm:pt-8">
+        <header className="mb-4 flex items-center justify-between sm:mb-5">
+          <p className="text-lg font-light uppercase tracking-[0.24em] text-zinc-400 sm:text-xl sm:tracking-[0.3em]">NOTUBE</p>
           <button
             type="button"
             onClick={() => setShowDebug((prev) => !prev)}
@@ -557,25 +557,25 @@ export default function LandingPage() {
           </button>
         </header>
 
-        <div ref={timelineRef} className="flex max-h-[calc(100vh-13rem)] flex-col gap-5 overflow-y-auto pb-8">
-          <article className="ml-auto max-w-[82%] rounded-2xl border border-zinc-500 bg-zinc-100 px-5 py-3.5 text-base leading-relaxed text-zinc-900">
+        <div ref={timelineRef} className="flex max-h-[calc(100svh-10.5rem)] flex-col gap-3 overflow-y-auto pb-6 sm:max-h-[calc(100svh-13rem)] sm:gap-5 sm:pb-8">
+          <article className="ml-auto max-w-[88%] rounded-2xl border border-zinc-500 bg-zinc-100 px-4 py-3 text-sm leading-relaxed text-zinc-900 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
             {topic}
           </article>
 
           {stage === "loading" ? (
-            <article className="max-w-[82%] rounded-2xl border border-zinc-800 bg-zinc-950/80 px-5 py-3.5 text-base leading-relaxed text-zinc-300">
+            <article className="max-w-[88%] rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-sm leading-relaxed text-zinc-300 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
               {reflectionFinished ? "Generating quiz..." : "Finding the best video and alternatives..."}
             </article>
           ) : null}
 
           {stage !== "loading" ? (
-            <article className="max-w-[82%] space-y-3.5 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-5 py-4.5 text-base leading-relaxed text-zinc-200">
+            <article className="max-w-[88%] space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-4 text-sm leading-relaxed text-zinc-200 sm:max-w-[82%] sm:space-y-3.5 sm:px-5 sm:py-4.5 sm:text-base">
               <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Selected video</p>
-              <h2 className="text-xl font-medium leading-snug text-zinc-100">{selectedVideo.title}</h2>
-              <p className="text-base text-zinc-400">
+              <h2 className="text-lg font-medium leading-snug text-zinc-100 sm:text-xl">{selectedVideo.title}</h2>
+              <p className="text-sm text-zinc-400 sm:text-base">
                 {selectedVideo.channel} • {selectedVideo.durationMinutes} min
               </p>
-              <p className="text-base text-zinc-300">{selectedVideo.reasonSelected}</p>
+              <p className="text-sm text-zinc-300 sm:text-base">{selectedVideo.reasonSelected}</p>
 
               {showDebug ? (
                 <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
@@ -604,7 +604,7 @@ export default function LandingPage() {
           ) : null}
 
           {(stage === "watching" || stage === "reflecting" || stage === "quiz" || stage === "score") && (
-            <article className="max-w-[92%] space-y-3.5 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-5 py-4.5 text-base leading-relaxed text-zinc-200">
+            <article className="max-w-[96%] space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-4 text-sm leading-relaxed text-zinc-200 sm:max-w-[92%] sm:space-y-3.5 sm:px-5 sm:py-4.5 sm:text-base">
               <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Watch</p>
               <p className="text-xs text-zinc-500">
                 Now watching: {selectedVideo.role === "primary" ? "primary pick" : selectedVideo.role}
@@ -647,19 +647,19 @@ export default function LandingPage() {
           )}
 
           {(stage === "reflecting" || stage === "quiz" || stage === "score") && (
-            <article className="max-w-[82%] rounded-2xl border border-zinc-800 bg-zinc-950/80 px-5 py-3.5 text-base leading-relaxed text-zinc-300">
+            <article className="max-w-[88%] rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-sm leading-relaxed text-zinc-300 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
               Think Mode: pause and mentally reconstruct the core idea, failure modes, and one action you can take.
             </article>
           )}
 
           {reflectionFinished ? (
-            <article className="ml-auto max-w-[82%] rounded-2xl border border-zinc-500 bg-zinc-100 px-5 py-3.5 text-base leading-relaxed text-zinc-900">
+            <article className="ml-auto max-w-[88%] rounded-2xl border border-zinc-500 bg-zinc-100 px-4 py-3 text-sm leading-relaxed text-zinc-900 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
               60-second reflection completed.
             </article>
           ) : null}
 
           {(stage === "quiz" || stage === "score") && (
-            <article className="max-w-[90%] space-y-3.5 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-5 py-4.5 text-base leading-relaxed text-zinc-200">
+            <article className="max-w-[94%] space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-4 text-sm leading-relaxed text-zinc-200 sm:max-w-[90%] sm:space-y-3.5 sm:px-5 sm:py-4.5 sm:text-base">
               <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Quiz</p>
               {showDebug ? (
                 <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
@@ -685,7 +685,7 @@ export default function LandingPage() {
           )}
 
           {stage === "score" && score ? (
-            <article className="max-w-[90%] space-y-4.5 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-5 py-4.5 text-base leading-relaxed text-zinc-200">
+            <article className="max-w-[94%] space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-4 text-sm leading-relaxed text-zinc-200 sm:max-w-[90%] sm:space-y-4.5 sm:px-5 sm:py-4.5 sm:text-base">
               <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Viewing score</p>
               <p className="text-4xl font-semibold text-zinc-100">{score.total}/100</p>
               {quizResult ? (
@@ -807,10 +807,10 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-zinc-900/90 bg-[#050608]/95 px-3 pb-4 pt-3 backdrop-blur sm:px-5">
+      <div className="fixed inset-x-0 bottom-0 border-t border-zinc-900/90 bg-[#050608]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 backdrop-blur sm:px-5 sm:pb-4 sm:pt-3">
         <div className="mx-auto w-full max-w-4xl">
           {stage === "quiz" && currentQuizQuestion ? (
-            <div className="rounded-2xl border border-white/80 bg-transparent px-4 py-3.5">
+            <div className="rounded-2xl border border-white/80 bg-transparent px-3 py-3 sm:px-4 sm:py-3.5">
               <p className="mb-2 text-xs text-zinc-500">Pick one answer</p>
               <div className="flex flex-wrap gap-2">
                 {currentQuizQuestion.options.map((option) => (
@@ -826,8 +826,8 @@ export default function LandingPage() {
               </div>
             </div>
           ) : (
-            <form onSubmit={submitComposer} className="flex w-full items-center gap-3">
-              <label className="relative block flex-1 overflow-hidden rounded-2xl border border-white/80 bg-transparent px-4 py-3">
+            <form onSubmit={submitComposer} className="flex w-full items-center gap-2 sm:gap-3">
+              <label className="relative block flex-1 overflow-hidden rounded-2xl border border-white/80 bg-transparent px-3 py-2.5 sm:px-4 sm:py-3">
                 {stage === "reflecting" ? (
                   <span
                     className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-800/70 transition-[width]"
@@ -840,14 +840,14 @@ export default function LandingPage() {
                   onChange={(event) => setComposerText(event.target.value)}
                   disabled={composerDisabled}
                   placeholder={composerPlaceholder}
-                  className="relative z-10 w-full bg-transparent pr-3 text-base text-zinc-100 outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:opacity-80"
+                  className="relative z-10 w-full bg-transparent pr-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:opacity-80 sm:pr-3 sm:text-base"
                 />
               </label>
 
               <button
                 type="submit"
                 disabled={composerDisabled || !composerText.trim()}
-                className="h-12 rounded-xl border border-zinc-200 px-4 text-sm text-zinc-100 transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
+                className="h-10 rounded-xl border border-zinc-200 px-3 text-xs text-zinc-100 transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40 sm:h-12 sm:px-4 sm:text-sm"
               >
                 Search
               </button>
