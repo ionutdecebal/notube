@@ -37,6 +37,13 @@ npm run dev
 ```
 Open `http://localhost:3000`.
 
+## Secret safety check
+Run this before pushing to make sure no key-like secrets are present in tracked files:
+
+```bash
+npm run secrets:check
+```
+
 ## YouTube retrieval + ranking
 - Server route: `POST /api/search-candidates`
 - Module: `src/lib/youtube/search-candidates.ts`
