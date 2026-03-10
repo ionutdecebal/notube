@@ -4,7 +4,9 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { DemoState } from "@/lib/types";
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+const DATA_DIR =
+  process.env.NOTUBE_DATA_DIR ??
+  (process.env.VERCEL ? path.join("/tmp", "notube-data") : path.join(process.cwd(), ".data"));
 const DB_PATH = path.join(DATA_DIR, "notube-db.json");
 
 interface PersistedDB {
