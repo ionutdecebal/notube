@@ -55,6 +55,7 @@ type QuizMeta = {
 };
 
 const THINK_SECONDS = 60;
+const SEARCH_REQUEST_TIMEOUT_MS = 15_000;
 
 const EMPTY_RETRIEVAL: RetrievalMeta = {
   source: "mock",
@@ -355,10 +356,13 @@ export default function LandingPage() {
     let nextRetrieval = EMPTY_RETRIEVAL;
     let nextRanking = EMPTY_RANKING;
 
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), SEARCH_REQUEST_TIMEOUT_MS);
     try {
       const response = await fetch("/api/search-candidates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({ topic: parsed.topic, filters: parsed.filters }),
       });
 
@@ -385,6 +389,8 @@ export default function LandingPage() {
       }
     } catch {
       // fallback defaults already set
+    } finally {
+      window.clearTimeout(timeout);
     }
 
     const nextState = initializeDemoState(
