@@ -36,6 +36,7 @@ type CandidateSource = "youtube" | "mock";
 type FallbackReason =
   | "lie-mode-enabled"
   | "missing-api-key"
+  | "quota-exceeded"
   | "search-timeout"
   | "search-rate-limited"
   | "search-http-error"
@@ -87,7 +88,11 @@ const tokenize = (text: string) =>
 
 const unique = <T>(values: T[]): T[] => Array.from(new Set(values));
 
-const buildQueryVariants = (topic: string, filters: SessionFilters): string[] => {
+const buildQueryVariants = (
+  topic: string,
+  filters: SessionFilters,
+  pass: "primary" | "fallback",
+): string[] => {
   const difficultyTerm =
     filters.difficulty === "beginner"
       ? "beginner"
@@ -100,9 +105,15 @@ const buildQueryVariants = (topic: string, filters: SessionFilters): string[] =>
       ? ["quick explanation", "overview", "explained"]
       : ["full tutorial", "deep dive", "complete guide"];
 
+  if (pass === "primary") {
+    return unique([
+      `${topic} ${modeTerms[0]}`,
+      `${topic} tutorial`,
+    ]);
+  }
+
   return unique([
     topic,
-    `${topic} tutorial`,
     `${topic} explained`,
     `${topic} ${modeTerms[0]} ${difficultyTerm}`,
     `${topic} ${modeTerms[1]} ${difficultyTerm}`,
@@ -402,7 +413,7 @@ const rerankWithAI = async (
 
 const fetchYouTubeJson = async <T>(url: string): Promise<
   | { ok: true; json: T; attempts: number }
-  | { ok: false; reason: "timeout" | "rate-limited" | "http-error" | "network-error"; attempts: number }
+  | { ok: false; reason: "timeout" | "rate-limited" | "quota-exceeded" | "http-error" | "network-error"; attempts: number }
 > => {
   let attemptCount = 0;
 
@@ -430,6 +441,18 @@ const fetchYouTubeJson = async <T>(url: string): Promise<
       if (res.status === 429) {
         if (attempt < MAX_RETRIES) continue;
         return { ok: false, reason: "rate-limited", attempts: attemptCount };
+      }
+
+      if (res.status === 403) {
+        try {
+          const errorJson = (await res.json()) as { error?: { errors?: Array<{ reason?: string }> } };
+          const reasons = errorJson.error?.errors?.map((entry) => entry.reason) ?? [];
+          if (reasons.some((reason) => reason === "quotaExceeded" || reason === "dailyLimitExceeded")) {
+            return { ok: false, reason: "quota-exceeded", attempts: attemptCount };
+          }
+        } catch {
+          // fall through to generic http error
+        }
       }
 
       if ([500, 502, 503, 504].includes(res.status) && attempt < MAX_RETRIES) {
@@ -490,39 +513,53 @@ export const searchYouTubeCandidates = async (
     };
   }
 
-  const queryVariants = buildQueryVariants(topic, filters);
   const mergedItems = new Map<string, YouTubeSearchItem>();
   let totalAttempts = 0;
-  let firstSearchFailure: "timeout" | "rate-limited" | "http-error" | "network-error" | null = null;
+  let firstSearchFailure: "timeout" | "rate-limited" | "quota-exceeded" | "http-error" | "network-error" | null = null;
 
-  for (const query of queryVariants) {
-    const searchParams = new URLSearchParams({
-      part: "snippet",
-      q: query,
-      type: "video",
-      maxResults: String(SEARCH_RESULTS_PER_QUERY),
-      order: "relevance",
-      relevanceLanguage: "en",
-      key: apiKey,
-    });
+  for (const pass of ["primary", "fallback"] as const) {
+    const queryVariants = buildQueryVariants(topic, filters, pass);
 
-    const searchFetch = await fetchYouTubeJson<{ items?: YouTubeSearchItem[] }>(
-      `${API_BASE}/search?${searchParams.toString()}`,
-    );
-    totalAttempts += searchFetch.attempts;
+    for (const query of queryVariants) {
+      const searchParams = new URLSearchParams({
+        part: "snippet",
+        q: query,
+        type: "video",
+        maxResults: String(SEARCH_RESULTS_PER_QUERY),
+        order: "relevance",
+        relevanceLanguage: "en",
+        key: apiKey,
+      });
 
-    if (!searchFetch.ok) {
-      if (!firstSearchFailure) firstSearchFailure = searchFetch.reason;
-      continue;
-    }
+      const searchFetch = await fetchYouTubeJson<{ items?: YouTubeSearchItem[] }>(
+        `${API_BASE}/search?${searchParams.toString()}`,
+      );
+      totalAttempts += searchFetch.attempts;
 
-    for (const item of searchFetch.json.items ?? []) {
-      const id = item.id.videoId;
-      if (!id) continue;
-      if (!mergedItems.has(id)) {
-        mergedItems.set(id, item);
+      if (!searchFetch.ok) {
+        if (!firstSearchFailure) firstSearchFailure = searchFetch.reason;
+        if (searchFetch.reason === "quota-exceeded") {
+          return {
+            candidates: [],
+            source: "mock",
+            fallbackReason: "quota-exceeded",
+            attempts: totalAttempts,
+            ranking: emptyRanking(),
+          };
+        }
+        continue;
+      }
+
+      for (const item of searchFetch.json.items ?? []) {
+        const id = item.id.videoId;
+        if (!id) continue;
+        if (!mergedItems.has(id)) {
+          mergedItems.set(id, item);
+        }
       }
     }
+
+    if (mergedItems.size >= 12) break;
   }
 
   const items = Array.from(mergedItems.values()).slice(0, MAX_CANDIDATES_FOR_DETAILS);
@@ -534,7 +571,9 @@ export const searchYouTubeCandidates = async (
         candidates: [],
         source: "mock",
         fallbackReason:
-          firstSearchFailure === "timeout"
+          firstSearchFailure === "quota-exceeded"
+            ? "quota-exceeded"
+            : firstSearchFailure === "timeout"
             ? "search-timeout"
             : firstSearchFailure === "rate-limited"
               ? "search-rate-limited"
@@ -571,7 +610,9 @@ export const searchYouTubeCandidates = async (
       candidates: [],
       source: "mock",
       fallbackReason:
-        detailsFetch.reason === "timeout"
+        detailsFetch.reason === "quota-exceeded"
+          ? "quota-exceeded"
+          : detailsFetch.reason === "timeout"
           ? "details-timeout"
           : detailsFetch.reason === "rate-limited"
             ? "details-rate-limited"

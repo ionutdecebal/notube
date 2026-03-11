@@ -21,6 +21,7 @@ export type CandidateSource = "youtube" | "mock";
 export type RetrievalFallbackReason =
   | "lie-mode-enabled"
   | "missing-api-key"
+  | "quota-exceeded"
   | "search-timeout"
   | "search-rate-limited"
   | "search-http-error"

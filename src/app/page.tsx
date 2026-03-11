@@ -617,6 +617,8 @@ export default function LandingPage() {
       const message =
         reason === "missing-api-key"
           ? "Search is unavailable because the YouTube API key is missing."
+          : reason === "quota-exceeded"
+            ? "The daily YouTube search limit has been reached. Try again after the quota resets."
           : reason === "search-rate-limited" || reason === "details-rate-limited"
             ? "Search is temporarily rate limited. Try again shortly."
             : reason === "search-http-error" || reason === "details-http-error"
