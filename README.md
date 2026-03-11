@@ -16,12 +16,6 @@ notube is a distraction-free learning workflow for YouTube lessons. Instead of b
 
 ## Routes in this MVP
 - `/` landing + topic input with optional preferences in parentheses
-- `/session/demo` selected lesson
-- `/watch/demo` watch page
-- `/think/demo` think mode timer + reflection
-- `/quiz/demo` quiz
-- `/score/demo` learning score
-- `/backups/demo` unlocked backups
 
 ## Topic input format
 Use one text field and optionally add preferences in `(...)`.
@@ -57,10 +51,10 @@ npm run secrets:check
 - Returns diagnostics (`source`, `fallbackReason`, `attempts`) for visibility
 - Returns ranking diagnostics (`strategy`, `aiUsed`, shortlist size, top candidate scores)
 
-If `YOUTUBE_API_KEY` is missing or API calls fail, the app automatically falls back to mocked candidates so the flow still works.
+If `YOUTUBE_API_KEY` is missing or API calls fail, the app now shows an error state instead of using mocked candidates.
 
 ### Debug lie mode
-- Set `NOTUBE_LIE_YOUTUBE=1` to force the API to return mocked candidates while reporting `source: "youtube"`.
+- Set `NOTUBE_LIE_YOUTUBE=1` to force the search route into an error/fallback state for testing.
 - This is useful for validating YouTube integration wiring without depending on live API behavior.
 
 ## Persistence + progress
@@ -70,14 +64,13 @@ If `YOUTUBE_API_KEY` is missing or API calls fail, the app automatically falls b
 - Session links carry `?sessionId=...` so sessions can be rehydrated across devices
 
 ## Watch flow
-- `/watch/demo` uses YouTube Iframe API for embedded playback
+- The main chat flow uses the YouTube Iframe API for embedded playback
 - Real watch progress is tracked and displayed
 - Continue unlocks at 85% watched
 - Auto-advances to Think Mode when the video ends, skipping end-screen recommendations
 
 ## What is still mocked
 - Transcript/notes content
-- Quiz generation intelligence
 
 ## Suggested next implementation steps
 1. Add auth and user identity so cross-device session loading is automatic.

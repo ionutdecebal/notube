@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { calculateLearningScore } from "@/lib/scoring";
-import { DEMO_QUIZ_QUESTIONS, MOCK_VIDEOS } from "@/lib/mock-data";
 import { parseTopicInput } from "@/lib/topic-preferences";
 import { LearningScore, QuizQuestion, RankingMeta, RetrievalMeta, VideoCandidate } from "@/lib/types";
 import {
@@ -45,9 +44,11 @@ type ChatStage = "idle" | "loading" | "lesson" | "watching" | "reflecting" | "qu
 type StageAction =
   | { type: "START_SEARCH" }
   | { type: "SEARCH_READY" }
+  | { type: "SEARCH_FAILED" }
   | { type: "START_WATCH" }
   | { type: "BEGIN_REFLECTION" }
   | { type: "QUIZ_READY" }
+  | { type: "QUIZ_FAILED" }
   | { type: "QUIZ_SUBMITTED" };
 type QuizMeta = {
   source: "ai" | "fallback";
@@ -99,12 +100,16 @@ const stageReducer = (stage: ChatStage, action: StageAction): ChatStage => {
       return "loading";
     case "SEARCH_READY":
       return "lesson";
+    case "SEARCH_FAILED":
+      return "idle";
     case "START_WATCH":
       return "watching";
     case "BEGIN_REFLECTION":
       return stage === "watching" ? "reflecting" : stage;
     case "QUIZ_READY":
       return "quiz";
+    case "QUIZ_FAILED":
+      return "lesson";
     case "QUIZ_SUBMITTED":
       return "score";
     default:
@@ -114,6 +119,7 @@ const stageReducer = (stage: ChatStage, action: StageAction): ChatStage => {
 
 export default function LandingPage() {
   const [stage, dispatchStage] = useReducer(stageReducer, "idle");
+  const [uiError, setUiError] = useState<string | null>(null);
   const [composerText, setComposerText] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [topic, setTopic] = useState("");
@@ -152,12 +158,9 @@ export default function LandingPage() {
     getDuration: () => number;
   } | null>(null);
 
-  const selectedVideo =
-    candidates.find((video) => video.id === activeVideoId) ??
-    candidates[0] ??
-    MOCK_VIDEOS[0];
+  const selectedVideo = candidates.find((video) => video.id === activeVideoId) ?? candidates[0] ?? null;
   const backups = candidates.slice(1, 3);
-  const embedId = extractYouTubeVideoId(selectedVideo.id, selectedVideo.videoUrl);
+  const embedId = selectedVideo ? extractYouTubeVideoId(selectedVideo.id, selectedVideo.videoUrl) : null;
   const watchPercent =
     watchStats.durationSeconds > 0
       ? Math.min(100, (watchStats.watchedSeconds / watchStats.durationSeconds) * 100)
@@ -211,6 +214,7 @@ export default function LandingPage() {
   );
 
   const completeReflection = useCallback(() => {
+    if (!selectedVideo) return;
     saveReflection({
       prompts: [
         "What is the single most important idea from this video?",
@@ -245,9 +249,8 @@ export default function LandingPage() {
         });
 
         if (!response.ok) {
-          setQuizQuestions(DEMO_QUIZ_QUESTIONS.slice(0, 3));
-          setQuizMeta({ source: "fallback", basis: "general-topic" });
-          dispatchStage({ type: "QUIZ_READY" });
+          setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
+          dispatchStage({ type: "QUIZ_FAILED" });
           return;
         }
 
@@ -258,15 +261,21 @@ export default function LandingPage() {
         const questions =
           payload.questions?.filter((question) => question.options.length === 3).slice(0, 3) ??
           [];
-        setQuizQuestions(questions.length >= 3 ? questions : DEMO_QUIZ_QUESTIONS.slice(0, 3));
-        setQuizMeta(payload.meta ?? { source: "fallback", basis: "general-topic" });
+        if (payload.meta?.source !== "ai" || questions.length < 3) {
+          setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
+          dispatchStage({ type: "QUIZ_FAILED" });
+          return;
+        }
+        setQuizQuestions(questions);
+        setQuizMeta(payload.meta);
       } catch {
-        setQuizQuestions(DEMO_QUIZ_QUESTIONS.slice(0, 3));
-        setQuizMeta({ source: "fallback", basis: "general-topic" });
+        setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
+        dispatchStage({ type: "QUIZ_FAILED" });
+        return;
       }
       dispatchStage({ type: "QUIZ_READY" });
     })();
-  }, [selectedVideo.channel, selectedVideo.reasonSelected, selectedVideo.title]);
+  }, [selectedVideo, setUiError]);
 
   useEffect(() => {
     if (stage !== "watching" || !embedId || !playerRootRef.current) return;
@@ -364,6 +373,7 @@ export default function LandingPage() {
     if (!parsed.topic.trim()) return;
 
     dispatchStage({ type: "START_SEARCH" });
+    setUiError(null);
     setTopic(parsed.topic);
     setQuizAnswers({});
     setQuizQuestions([]);
@@ -378,7 +388,7 @@ export default function LandingPage() {
     setReflectionFinished(false);
     setWatchStats({ watchedSeconds: 0, durationSeconds: 0, watchCompletedAt: null });
 
-    let nextCandidates: VideoCandidate[] = MOCK_VIDEOS;
+    let nextCandidates: VideoCandidate[] = [];
     let nextRetrieval = EMPTY_RETRIEVAL;
     let nextRanking = EMPTY_RANKING;
 
@@ -401,7 +411,7 @@ export default function LandingPage() {
           ranking?: RankingMeta;
         };
 
-        if (payload.candidates && payload.candidates.length >= 3) {
+        if (payload.source === "youtube" && payload.candidates && payload.candidates.length >= 3) {
           nextCandidates = payload.candidates;
         }
 
@@ -414,9 +424,26 @@ export default function LandingPage() {
         nextRanking = payload.ranking ?? EMPTY_RANKING;
       }
     } catch {
-      // fallback defaults already set
+      // handled below
     } finally {
       window.clearTimeout(timeout);
+    }
+
+    if (nextRetrieval.source !== "youtube" || nextCandidates.length < 3) {
+      const reason = nextRetrieval.fallbackReason;
+      const message =
+        reason === "missing-api-key"
+          ? "Search is unavailable because the YouTube API key is not configured."
+          : reason === "search-rate-limited" || reason === "details-rate-limited"
+            ? "Search is temporarily rate limited. Please try again shortly."
+            : reason === "search-timeout" || reason === "details-timeout" || reason === "network-error"
+              ? "Search is unavailable right now because the YouTube request failed."
+              : "No usable lesson results were returned. Please try a different topic.";
+      setUiError(message);
+      setCandidates([]);
+      setActiveVideoId(null);
+      dispatchStage({ type: "SEARCH_FAILED" });
+      return;
     }
 
     const nextState = initializeDemoState(
@@ -429,7 +456,7 @@ export default function LandingPage() {
 
     setSessionId(nextState.session.id);
     setCandidates(nextCandidates);
-    setActiveVideoId(nextCandidates[0]?.id ?? MOCK_VIDEOS[0].id);
+    setActiveVideoId(nextCandidates[0]?.id ?? null);
     setRetrieval(nextRetrieval);
     setRanking(nextRanking);
     dispatchStage({ type: "SEARCH_READY" });
@@ -474,6 +501,7 @@ export default function LandingPage() {
   };
 
   const skipCurrentSuggestion = () => {
+    if (!selectedVideo) return;
     const currentIndex = candidates.findIndex((video) => video.id === selectedVideo.id);
     if (currentIndex < 0 || candidates.length < 2) return;
 
@@ -498,6 +526,7 @@ export default function LandingPage() {
   };
 
   const submitSuggestionFeedback = (rating: "good" | "neutral" | "bad") => {
+    if (!selectedVideo) return;
     if (feedbackSubmitted) return;
     const session = getDemoState().session;
     addSuggestionFeedback({
@@ -556,6 +585,11 @@ export default function LandingPage() {
           </p>
 
           <form onSubmit={submitComposer} className="mx-auto w-full max-w-2xl">
+            {uiError ? (
+              <p className="mb-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-left text-sm text-amber-100">
+                {uiError}
+              </p>
+            ) : null}
             <label className="relative block rounded-2xl border border-white/85 bg-transparent px-4 py-3 sm:px-5 sm:py-4">
               <input
                 ref={composerRef}
@@ -588,24 +622,37 @@ export default function LandingPage() {
         </header>
 
         <div ref={timelineRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-6 sm:gap-5 sm:pb-8">
+          {uiError ? (
+            <article className="max-w-[94%] rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100 sm:max-w-[90%] sm:px-5 sm:py-3.5 sm:text-base">
+              {uiError}
+            </article>
+          ) : null}
           <article className="ml-auto max-w-[88%] rounded-2xl border border-zinc-500 bg-zinc-100 px-4 py-3 text-sm leading-relaxed text-zinc-900 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
             {topic}
           </article>
 
           {stage === "loading" ? (
-            <article className="max-w-[88%] rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-sm leading-relaxed text-zinc-300 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
-              {reflectionFinished ? "Generating quiz..." : "Finding the best video and alternatives..."}
+            <article className="max-w-[88%] space-y-2 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-sm leading-relaxed text-zinc-300 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
+              <p>{reflectionFinished ? "Generating quiz..." : "Finding the best video and alternatives..."}</p>
+              {!reflectionFinished ? (
+                <p className="text-xs text-zinc-500 sm:text-sm">
+                  You&apos;ll get one main lesson first, then a short reflection and quiz.
+                </p>
+              ) : null}
             </article>
           ) : null}
 
-          {stage !== "loading" ? (
+          {stage !== "loading" && selectedVideo ? (
             <article className="max-w-[88%] space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-4 text-sm leading-relaxed text-zinc-200 sm:max-w-[82%] sm:space-y-3.5 sm:px-5 sm:py-4.5 sm:text-base">
               <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Selected video</p>
               <h2 className="text-lg font-medium leading-snug text-zinc-100 sm:text-xl">{selectedVideo.title}</h2>
               <p className="text-sm text-zinc-400 sm:text-base">
                 {selectedVideo.channel} • {selectedVideo.durationMinutes} min
               </p>
-              <p className="text-sm text-zinc-300 sm:text-base">{selectedVideo.reasonSelected}</p>
+              <div className="space-y-1 rounded-xl border border-zinc-800 bg-zinc-950/70 px-3.5 py-3">
+                <p className="text-xs uppercase tracking-[0.1em] text-zinc-500">Why this lesson</p>
+                <p className="text-sm text-zinc-300 sm:text-base">{selectedVideo.reasonSelected}</p>
+              </div>
 
               {showDebug ? (
                 <div className="flex flex-wrap gap-2 text-xs text-zinc-500">

@@ -11,7 +11,7 @@ import {
   SuggestionFeedback,
   VideoCandidate,
 } from "@/lib/types";
-import { DEFAULT_FILTERS, DEFAULT_SCORE, MOCK_VIDEOS, buildDemoSession } from "@/lib/mock-data";
+import { DEFAULT_FILTERS, createLearningSession } from "@/lib/session-defaults";
 
 const STORAGE_KEY = "notube-demo-state";
 const WATCH_COMPLETION_THRESHOLD = 0.85;
@@ -71,20 +71,20 @@ export const hydrateDemoStateFromServer = async (sessionId: string): Promise<Dem
 };
 
 const defaultState = (
-  topic = "TypeScript for web development",
+  topic = "",
   filters = DEFAULT_FILTERS,
-  candidates: VideoCandidate[] = MOCK_VIDEOS,
+  candidates: VideoCandidate[] = [],
   retrieval: {
     source: CandidateSource;
     fallbackReason?: RetrievalFallbackReason;
     attempts: number;
   } = {
-    source: "mock",
+    source: "youtube",
     attempts: 0,
   },
   ranking: RankingMeta = DEFAULT_RANKING,
 ): DemoState => ({
-  session: buildDemoSession(topic, filters, candidates),
+  session: createLearningSession(topic, filters, candidates),
   videoCandidates: candidates,
   retrieval,
   ranking,
@@ -128,7 +128,7 @@ export const getDemoState = (): DemoState => {
     return {
       ...parsed,
       retrieval: parsed.retrieval ?? {
-        source: "mock",
+        source: "youtube",
         attempts: 0,
       },
       ranking: {
@@ -161,13 +161,13 @@ const setDemoState = (next: DemoState) => {
 export const initializeDemoState = (
   topic: string,
   filters: SessionFilters,
-  candidates: VideoCandidate[] = MOCK_VIDEOS,
+  candidates: VideoCandidate[] = [],
   retrieval: {
     source: CandidateSource;
     fallbackReason?: RetrievalFallbackReason;
     attempts: number;
   } = {
-    source: "mock",
+    source: "youtube",
     attempts: 0,
   },
   ranking: RankingMeta = DEFAULT_RANKING,
@@ -210,11 +210,6 @@ export const addSuggestionFeedback = (
     ...current,
     suggestionFeedback: [...current.suggestionFeedback, next],
   });
-};
-
-export const getLearningScoreOrDefault = (): LearningScore => {
-  const current = getDemoState();
-  return current.learningScore ?? { ...DEFAULT_SCORE, sessionId: current.session.id };
 };
 
 export const saveWatchProgress = (watchedSeconds: number, durationSeconds: number) => {

@@ -1,6 +1,5 @@
 import "server-only";
 
-import { MOCK_VIDEOS } from "@/lib/mock-data";
 import { getFeedbackSignals } from "@/lib/server/persistence";
 import { RankingMeta, SessionFilters, VideoCandidate } from "@/lib/types";
 
@@ -468,8 +467,8 @@ export const searchYouTubeCandidates = async (
 
   if (LIE_YOUTUBE_MODE) {
     return {
-      candidates: MOCK_VIDEOS,
-      source: "youtube",
+      candidates: [],
+      source: "mock",
       fallbackReason: "lie-mode-enabled",
       attempts: 0,
       ranking: emptyRanking(),
@@ -479,7 +478,7 @@ export const searchYouTubeCandidates = async (
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) {
     return {
-      candidates: MOCK_VIDEOS,
+      candidates: [],
       source: "mock",
       fallbackReason: "missing-api-key",
       attempts: 0,
@@ -528,7 +527,7 @@ export const searchYouTubeCandidates = async (
   if (ids.length === 0) {
     if (firstSearchFailure) {
       return {
-        candidates: MOCK_VIDEOS,
+        candidates: [],
         source: "mock",
         fallbackReason:
           firstSearchFailure === "timeout"
@@ -544,7 +543,7 @@ export const searchYouTubeCandidates = async (
     }
 
     return {
-      candidates: MOCK_VIDEOS,
+      candidates: [],
       source: "mock",
       fallbackReason: "search-empty-results",
       attempts: totalAttempts,
@@ -565,7 +564,7 @@ export const searchYouTubeCandidates = async (
 
   if (!detailsFetch.ok) {
     return {
-      candidates: MOCK_VIDEOS,
+      candidates: [],
       source: "mock",
       fallbackReason:
         detailsFetch.reason === "timeout"
@@ -587,7 +586,7 @@ export const searchYouTubeCandidates = async (
   const scored = buildScoredCandidates(topic, filters, items, durations, feedbackSignals);
   if (scored.length < 3) {
     return {
-      candidates: MOCK_VIDEOS,
+      candidates: [],
       source: "mock",
       fallbackReason: "normalize-insufficient-results",
       attempts: totalAttempts,

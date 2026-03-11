@@ -1,4 +1,4 @@
-import { DEFAULT_FILTERS } from "@/lib/mock-data";
+import { DEFAULT_FILTERS } from "@/lib/session-defaults";
 import { SessionFilters } from "@/lib/types";
 
 export interface ParsedTopicInput {
@@ -93,4 +93,3 @@ export const parseTopicInput = (input: string): ParsedTopicInput => {
     preferencesRaw,
   };
 };
-
