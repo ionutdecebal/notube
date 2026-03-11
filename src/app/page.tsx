@@ -729,10 +729,10 @@ export default function LandingPage() {
 
   return (
     <main className="relative h-[calc(100svh-4rem)] overflow-hidden bg-transparent">
-      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden px-3 pb-64 pt-3 sm:px-6 sm:pb-56 sm:pt-6">
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden px-3 pt-3 sm:px-6 sm:pt-6">
         <div
           ref={timelineRef}
-          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-24 [scroll-padding-bottom:14rem] sm:gap-5 sm:pb-20 sm:[scroll-padding-bottom:12rem]"
+          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-6 sm:gap-5 sm:pb-8"
         >
           {uiError ? (
             <article className="max-w-[94%] rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100 sm:max-w-[90%] sm:px-5 sm:py-3.5 sm:text-base">
@@ -1000,71 +1000,68 @@ export default function LandingPage() {
               {sessionId ? <p className="text-xs text-zinc-600">Session {sessionId}</p> : null}
             </article>
           ) : null}
+        </div>
+        <div className="shrink-0 border-t border-zinc-900/90 bg-[#050608]/95 px-0 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 backdrop-blur sm:pb-4 sm:pt-3">
+          <div className="mx-auto w-full max-w-4xl">
+            {stage === "quiz" && currentQuizQuestion ? (
+              <div className="rounded-2xl border border-white/80 bg-transparent px-3 py-3 sm:px-4 sm:py-3.5">
+                <p className="mb-2 text-xs text-zinc-500">
+                  Pick one answer from {currentQuizQuestion.options.length} choices
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {currentQuizQuestion.options.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => onQuizOption(option.id, option.label)}
+                      className="rounded-full border border-zinc-600 px-3 py-1.5 text-sm text-zinc-100 transition-colors hover:border-zinc-300 hover:bg-zinc-900"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={submitComposer} className="flex w-full items-center gap-2 sm:gap-3">
+                <label className="relative block flex-1 overflow-hidden rounded-2xl border border-white/80 bg-transparent px-3 py-2.5 sm:px-4 sm:py-3">
+                  {stage === "reflecting" ? (
+                    <span
+                      className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-800/70 transition-[width]"
+                      style={{ width: `${reflectionProgress}%` }}
+                    />
+                  ) : null}
+                  <input
+                    ref={composerRef}
+                    value={composerValue}
+                    onChange={(event) => setComposerText(event.target.value)}
+                    disabled={composerDisabled}
+                    enterKeyHint="search"
+                    placeholder={composerPlaceholder}
+                    className="relative z-10 w-full bg-transparent pr-2 text-base text-zinc-100 outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:opacity-80 sm:pr-3"
+                  />
+                </label>
 
-          <div aria-hidden="true" className="h-24 shrink-0 sm:h-16" />
+                <button
+                  type="submit"
+                  disabled={composerDisabled || !composerText.trim()}
+                  className="h-10 rounded-xl border border-zinc-200 px-3 text-xs text-zinc-100 transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40 sm:h-12 sm:px-4 sm:text-sm"
+                >
+                  Search
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
 
       <button
         type="button"
         onClick={() => setShowDebug((prev) => !prev)}
-        className="fixed bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] right-4 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-zinc-700 bg-[#0a0d12]/95 text-sm text-zinc-300 shadow-lg transition-colors hover:border-zinc-500 hover:text-zinc-100 sm:bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] sm:right-6"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-4 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-zinc-700 bg-[#0a0d12]/95 text-sm text-zinc-300 shadow-lg transition-colors hover:border-zinc-500 hover:text-zinc-100 sm:bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] sm:right-6"
         aria-label="Toggle debug details"
       >
         ?
       </button>
-
-      <div className="fixed inset-x-0 bottom-0 border-t border-zinc-900/90 bg-[#050608]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 backdrop-blur sm:px-5 sm:pb-4 sm:pt-3">
-        <div className="mx-auto w-full max-w-4xl">
-          {stage === "quiz" && currentQuizQuestion ? (
-            <div className="rounded-2xl border border-white/80 bg-transparent px-3 py-3 sm:px-4 sm:py-3.5">
-              <p className="mb-2 text-xs text-zinc-500">
-                Pick one answer from {currentQuizQuestion.options.length} choices
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {currentQuizQuestion.options.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => onQuizOption(option.id, option.label)}
-                    className="rounded-full border border-zinc-600 px-3 py-1.5 text-sm text-zinc-100 transition-colors hover:border-zinc-300 hover:bg-zinc-900"
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={submitComposer} className="flex w-full items-center gap-2 sm:gap-3">
-              <label className="relative block flex-1 overflow-hidden rounded-2xl border border-white/80 bg-transparent px-3 py-2.5 sm:px-4 sm:py-3">
-                {stage === "reflecting" ? (
-                  <span
-                    className="pointer-events-none absolute inset-y-0 left-0 bg-zinc-800/70 transition-[width]"
-                    style={{ width: `${reflectionProgress}%` }}
-                  />
-                ) : null}
-                <input
-                  ref={composerRef}
-                  value={composerValue}
-                  onChange={(event) => setComposerText(event.target.value)}
-                  disabled={composerDisabled}
-                  enterKeyHint="search"
-                  placeholder={composerPlaceholder}
-                  className="relative z-10 w-full bg-transparent pr-2 text-base text-zinc-100 outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:opacity-80 sm:pr-3"
-                />
-              </label>
-
-              <button
-                type="submit"
-                disabled={composerDisabled || !composerText.trim()}
-                className="h-10 rounded-xl border border-zinc-200 px-3 text-xs text-zinc-100 transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40 sm:h-12 sm:px-4 sm:text-sm"
-              >
-                Search
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
     </main>
   );
 }
