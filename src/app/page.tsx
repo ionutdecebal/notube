@@ -139,8 +139,9 @@ export default function LandingPage() {
   const [score, setScore] = useState<LearningScore | null>(null);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const [feedbackRating, setFeedbackRating] = useState<"good" | "neutral" | "bad" | null>(null);
-  const [feedbackComment, setFeedbackComment] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [scoreStep, setScoreStep] = useState<"result" | "feedback" | "backups">("result");
+  const [backupsExpanded, setBackupsExpanded] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
 
   const timelineRef = useRef<HTMLDivElement | null>(null);
@@ -183,6 +184,33 @@ export default function LandingPage() {
     setReflectionFinished(false);
     dispatchStage({ type: "BEGIN_REFLECTION" });
   };
+
+  const restartCurrentLesson = useCallback(() => {
+    setWatchStats({
+      watchedSeconds: 0,
+      durationSeconds: 0,
+      watchCompletedAt: null,
+    });
+    setReflectionFinished(false);
+    setQuizIndex(0);
+    setQuizHistory([]);
+    setQuizAnswers({});
+    setQuizResult(null);
+    setScore(null);
+    setFeedbackRating(null);
+    setFeedbackSubmitted(false);
+    setScoreStep("result");
+    setBackupsExpanded(false);
+    dispatchStage({ type: "START_WATCH" });
+  }, []);
+
+  const switchToVideo = useCallback(
+    (videoId: string) => {
+      setActiveVideoId(videoId);
+      restartCurrentLesson();
+    },
+    [restartCurrentLesson],
+  );
 
   const completeReflection = useCallback(() => {
     saveReflection({
@@ -347,8 +375,9 @@ export default function LandingPage() {
     setQuizResult(null);
     setScore(null);
     setFeedbackRating(null);
-    setFeedbackComment("");
     setFeedbackSubmitted(false);
+    setScoreStep("result");
+    setBackupsExpanded(false);
     setReflectionFinished(false);
     setWatchStats({ watchedSeconds: 0, durationSeconds: 0, watchCompletedAt: null });
 
@@ -443,6 +472,8 @@ export default function LandingPage() {
 
     setQuizResult({ correct: correctCount, total: totalCount });
     setScore(nextScore);
+    setScoreStep("result");
+    setBackupsExpanded(false);
     dispatchStage({ type: "QUIZ_SUBMITTED" });
   };
 
@@ -470,17 +501,19 @@ export default function LandingPage() {
     setActiveVideoId(nextVideo.id);
   };
 
-  const submitSuggestionFeedback = () => {
-    if (!feedbackRating || feedbackSubmitted) return;
+  const submitSuggestionFeedback = (rating: "good" | "neutral" | "bad") => {
+    if (feedbackSubmitted) return;
     const session = getDemoState().session;
     addSuggestionFeedback({
       sessionId: session.id,
       videoId: selectedVideo.id,
       context: "post-quiz",
-      rating: feedbackRating,
-      comment: feedbackComment.trim(),
+      rating,
+      comment: "",
     });
+    setFeedbackRating(rating);
     setFeedbackSubmitted(true);
+    setScoreStep("backups");
   };
 
   const onQuizOption = (optionId: string, optionLabel: string) => {
@@ -687,119 +720,135 @@ export default function LandingPage() {
           {stage === "score" && score ? (
             <article className="max-w-[94%] space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-4 text-sm leading-relaxed text-zinc-200 sm:max-w-[90%] sm:space-y-4.5 sm:px-5 sm:py-4.5 sm:text-base">
               <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Viewing score</p>
-              <p className="text-4xl font-semibold text-zinc-100">{score.total}/100</p>
-              {quizResult ? (
-                <p className="text-xs text-zinc-400">
-                  Quiz result: {quizResult.correct}/{quizResult.total} correct
-                </p>
-              ) : null}
-              <p className="text-xs text-zinc-400">
-                Focus {score.breakdown.focus} • Recall {score.breakdown.recall} • Reasoning {score.breakdown.reasoning}
-              </p>
-              <p className="text-base text-zinc-300">{score.summary}</p>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setWatchStats({
-                      watchedSeconds: 0,
-                      durationSeconds: 0,
-                      watchCompletedAt: null,
-                    });
-                    setReflectionFinished(false);
-                    setQuizIndex(0);
-                    setQuizHistory([]);
-                    setQuizAnswers({});
-                    setQuizResult(null);
-                    setScore(null);
-                    setFeedbackRating(null);
-                    setFeedbackComment("");
-                    setFeedbackSubmitted(false);
-                    dispatchStage({ type: "START_WATCH" });
-                  }}
-                  className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs text-zinc-100 transition-colors hover:bg-zinc-900"
-                >
-                  Rewatch and retest
-                </button>
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-zinc-500">
+                <span className={scoreStep === "result" ? "text-zinc-200" : ""}>1 Result</span>
+                <span>/</span>
+                <span className={scoreStep === "feedback" ? "text-zinc-200" : ""}>2 Rate</span>
+                <span>/</span>
+                <span className={scoreStep === "backups" ? "text-zinc-200" : ""}>3 Backups</span>
               </div>
 
-              <div className="space-y-3.5 rounded-xl border border-zinc-800 p-3.5">
-                <p className="text-xs uppercase tracking-[0.1em] text-zinc-500">
-                  Feedback on this suggestion
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { label: "Good pick", value: "good" as const },
-                    { label: "Okay pick", value: "neutral" as const },
-                    { label: "Bad pick", value: "bad" as const },
-                  ].map((item) => (
+              {scoreStep === "result" ? (
+                <div className="space-y-4 rounded-xl border border-zinc-800 p-3.5">
+                  <p className="text-4xl font-semibold text-zinc-100">{score.total}/100</p>
+                  {quizResult ? (
+                    <p className="text-sm text-zinc-400">
+                      Quiz result: {quizResult.correct}/{quizResult.total} correct
+                    </p>
+                  ) : null}
+                  <p className="text-sm text-zinc-400">
+                    Focus {score.breakdown.focus} • Recall {score.breakdown.recall} • Reasoning {score.breakdown.reasoning}
+                  </p>
+                  <p className="text-base text-zinc-300">{score.summary}</p>
+
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <button
-                      key={item.value}
                       type="button"
-                      onClick={() => setFeedbackRating(item.value)}
-                      className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                        feedbackRating === item.value
-                          ? "border-zinc-200 bg-zinc-100 text-zinc-900"
-                          : "border-zinc-700 text-zinc-300 hover:border-zinc-500"
-                      }`}
+                      onClick={restartCurrentLesson}
+                      className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-100 transition-colors hover:bg-zinc-900"
                     >
-                      {item.label}
+                      Rewatch and retest
                     </button>
-                  ))}
+                    <button
+                      type="button"
+                      onClick={() => setScoreStep("feedback")}
+                      className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-500"
+                    >
+                      Rate this pick
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setScoreStep("backups")}
+                      className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-500"
+                    >
+                      View backups
+                    </button>
+                  </div>
                 </div>
-                <textarea
-                  value={feedbackComment}
-                  onChange={(event) => setFeedbackComment(event.target.value)}
-                  placeholder="Optional: why was this suggestion good or bad?"
-                  className="min-h-20 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-base text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-zinc-500 sm:text-sm"
-                />
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={submitSuggestionFeedback}
-                    disabled={!feedbackRating || feedbackSubmitted}
-                    className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs text-zinc-100 transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {feedbackSubmitted ? "Feedback saved" : "Submit feedback"}
-                  </button>
-                  {feedbackSubmitted ? (
-                    <span className="text-xs text-zinc-500">Thanks, this helps tune recommendations.</span>
+              ) : null}
+
+              {scoreStep === "feedback" ? (
+                <div className="space-y-3.5 rounded-xl border border-zinc-800 p-3.5">
+                  <p className="text-sm text-zinc-300">How was this pick?</p>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    {[
+                      { label: "Good pick", value: "good" as const },
+                      { label: "Okay pick", value: "neutral" as const },
+                      { label: "Bad pick", value: "bad" as const },
+                    ].map((item) => (
+                      <button
+                        key={item.value}
+                        type="button"
+                        onClick={() => submitSuggestionFeedback(item.value)}
+                        className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+                          feedbackRating === item.value
+                            ? "border-zinc-200 bg-zinc-100 text-zinc-900"
+                            : "border-zinc-700 text-zinc-300 hover:border-zinc-500"
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => setScoreStep("result")}
+                      className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-500"
+                    >
+                      Back to result
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setScoreStep("backups")}
+                      className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-500"
+                    >
+                      Skip to backups
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {scoreStep === "backups" ? (
+                <div className="space-y-3.5 rounded-xl border border-zinc-800 p-3.5">
+                  <p className="text-sm text-zinc-300">Backups are available if you want another lesson.</p>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => setBackupsExpanded((current) => !current)}
+                      className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-100 transition-colors hover:bg-zinc-900"
+                    >
+                      {backupsExpanded ? "Hide backups" : "Open backups"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setScoreStep("result")}
+                      className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-500"
+                    >
+                      Back to result
+                    </button>
+                  </div>
+
+                  {backupsExpanded ? (
+                    <div className="space-y-2.5">
+                      {backups.map((video, index) => (
+                        <button
+                          key={video.id}
+                          type="button"
+                          onClick={() => switchToVideo(video.id)}
+                          className="w-full rounded-lg border border-zinc-800 p-3.5 text-left transition-colors hover:border-zinc-600"
+                        >
+                          <p className="text-xs text-zinc-500">{index === 0 ? "backup simpler" : "backup deeper"}</p>
+                          <p className="mt-1 text-base text-zinc-100">{video.title}</p>
+                          <p className="text-xs text-zinc-500">
+                            {video.channel} • {video.durationMinutes} min
+                          </p>
+                        </button>
+                      ))}
+                    </div>
                   ) : null}
                 </div>
-              </div>
-
-              <div className="space-y-3.5 rounded-xl border border-zinc-800 p-3.5">
-                <p className="text-xs uppercase tracking-[0.1em] text-zinc-500">Backups unlocked</p>
-                {backups.map((video, index) => (
-                  <button
-                    key={video.id}
-                    type="button"
-                    onClick={() => {
-                      setActiveVideoId(video.id);
-                      setWatchStats({
-                        watchedSeconds: 0,
-                        durationSeconds: 0,
-                        watchCompletedAt: null,
-                      });
-                      setReflectionFinished(false);
-                      setQuizIndex(0);
-                      setQuizHistory([]);
-                      setQuizAnswers({});
-                      setQuizResult(null);
-                      setScore(null);
-                      dispatchStage({ type: "START_WATCH" });
-                    }}
-                    className="w-full rounded-lg border border-zinc-800 p-3.5 text-left transition-colors hover:border-zinc-600"
-                  >
-                    <p className="text-xs text-zinc-500">{index === 0 ? "backup simpler" : "backup deeper"}</p>
-                    <p className="mt-1 text-base text-zinc-100">{video.title}</p>
-                    <p className="text-xs text-zinc-500">
-                      {video.channel} • {video.durationMinutes} min
-                    </p>
-                  </button>
-                ))}
-              </div>
+              ) : null}
 
               {sessionId ? <p className="text-xs text-zinc-600">Session {sessionId}</p> : null}
             </article>
