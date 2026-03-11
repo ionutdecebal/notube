@@ -574,9 +574,8 @@ export default function LandingPage() {
 
   if (stage === "idle") {
     return (
-      <main className="relative flex min-h-[100svh] items-start justify-center px-4 pb-8 pt-16 sm:items-center sm:py-8">
+      <main className="relative flex min-h-[calc(100svh-4rem)] items-start justify-center px-4 pb-8 pt-8 sm:items-center sm:py-8">
         <div className="w-full max-w-3xl space-y-6 text-center sm:space-y-8">
-          <p className="text-xl font-medium uppercase tracking-[0.28em] text-zinc-200 sm:text-xl sm:tracking-[0.3em]">NOTUBE</p>
           <h1 className="text-balance text-3xl font-medium leading-[1.08] tracking-tight text-zinc-100 sm:text-5xl">
             Built for focus.
           </h1>
@@ -622,20 +621,18 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="relative h-[100svh] overflow-hidden bg-transparent">
-      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden px-3 pb-32 pt-4 sm:px-6 sm:pb-36 sm:pt-8">
-        <header className="mb-4 flex items-center justify-between sm:mb-5">
-          <p className="text-lg font-light uppercase tracking-[0.24em] text-zinc-400 sm:text-xl sm:tracking-[0.3em]">NOTUBE</p>
+    <main className="relative h-[calc(100svh-4rem)] overflow-hidden bg-transparent">
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden px-3 pb-32 pt-3 sm:px-6 sm:pb-36 sm:pt-6">
+        <div className="mb-3 flex justify-end sm:mb-4">
           <button
             type="button"
             onClick={() => setShowDebug((prev) => !prev)}
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-zinc-700 text-xs text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
+            className="inline-flex h-8 items-center rounded-full border border-zinc-700 px-3 text-xs text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
             aria-label="Toggle debug details"
           >
-            ?
+            {showDebug ? "Hide debug" : "Show debug"}
           </button>
-        </header>
-
+        </div>
         <div ref={timelineRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-6 sm:gap-5 sm:pb-8">
           {uiError ? (
             <article className="max-w-[94%] rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100 sm:max-w-[90%] sm:px-5 sm:py-3.5 sm:text-base">
