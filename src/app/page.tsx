@@ -140,6 +140,8 @@ export default function LandingPage() {
     source: "fallback",
     basis: "general-topic",
   });
+  const [quizStatus, setQuizStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [quizPreparedFor, setQuizPreparedFor] = useState<string | null>(null);
   const [quizIndex, setQuizIndex] = useState(0);
   const [quizHistory, setQuizHistory] = useState<Array<{ prompt: string; answer: string }>>([]);
   const [quizResult, setQuizResult] = useState<{ correct: number; total: number } | null>(null);
@@ -158,6 +160,7 @@ export default function LandingPage() {
     getCurrentTime: () => number;
     getDuration: () => number;
   } | null>(null);
+  const pendingQuizAdvanceRef = useRef(false);
 
   const selectedVideo = candidates.find((video) => video.id === activeVideoId) ?? candidates[0] ?? null;
   const backups = candidates.slice(1, 3);
@@ -170,6 +173,8 @@ export default function LandingPage() {
 
   const currentQuizQuestion = quizQuestions[quizIndex] ?? null;
   const reflectionProgress = ((THINK_SECONDS - reflectionSecondsLeft) / THINK_SECONDS) * 100;
+  const activeQuizMode = readUserSettings().quizMode;
+  const quizRequestKey = selectedVideo ? `${selectedVideo.id}:${activeQuizMode}` : null;
 
   useEffect(() => {
     const html = document.documentElement;
@@ -221,9 +226,14 @@ export default function LandingPage() {
     setQuizAnswers({});
     setQuizResult(null);
     setScore(null);
+    setQuizQuestions([]);
+    setQuizMeta({ source: "fallback", basis: "general-topic" });
+    setQuizStatus("idle");
+    setQuizPreparedFor(null);
     setFeedbackRating(null);
     setFeedbackSubmitted(false);
     setScoreStep("result");
+    pendingQuizAdvanceRef.current = false;
     dispatchStage({ type: "START_WATCH" });
   }, []);
 
@@ -235,25 +245,25 @@ export default function LandingPage() {
     [restartCurrentLesson],
   );
 
-  const completeReflection = useCallback(() => {
-    if (!selectedVideo) return;
-    saveReflection({
-      prompts: [
-        "What is the single most important idea from this video?",
-        "Where could this concept fail if applied incorrectly?",
-        "What concrete action will you take today to apply this?",
-      ],
-      response: "Timed reflection completed.",
-      durationSeconds: THINK_SECONDS,
-      completedAt: new Date().toISOString(),
-    });
+  const requestQuizGeneration = useCallback(
+    async (advanceWhenReady: boolean) => {
+      if (!selectedVideo || !quizRequestKey) return;
 
-    setReflectionFinished(true);
-    setQuizIndex(0);
-    setQuizHistory([]);
-    dispatchStage({ type: "START_SEARCH" });
+      if (quizPreparedFor === quizRequestKey && quizStatus === "ready") {
+        if (advanceWhenReady) {
+          dispatchStage({ type: "QUIZ_READY" });
+        }
+        return;
+      }
 
-    void (async () => {
+      if (quizStatus === "loading") {
+        pendingQuizAdvanceRef.current = pendingQuizAdvanceRef.current || advanceWhenReady;
+        return;
+      }
+
+      pendingQuizAdvanceRef.current = pendingQuizAdvanceRef.current || advanceWhenReady;
+      setQuizStatus("loading");
+
       try {
         const state = getDemoState();
         const settings = readUserSettings();
@@ -273,8 +283,12 @@ export default function LandingPage() {
         });
 
         if (!response.ok) {
-          setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
-          dispatchStage({ type: "QUIZ_FAILED" });
+          setQuizStatus("error");
+          if (pendingQuizAdvanceRef.current) {
+            setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
+            pendingQuizAdvanceRef.current = false;
+            dispatchStage({ type: "QUIZ_FAILED" });
+          }
           return;
         }
 
@@ -289,20 +303,60 @@ export default function LandingPage() {
             ?.filter((question) => question.options.length === requiredOptionCount)
             .slice(0, requiredQuestionCount) ?? [];
         if (payload.meta?.source !== "ai" || questions.length < requiredQuestionCount) {
-          setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
-          dispatchStage({ type: "QUIZ_FAILED" });
+          setQuizStatus("error");
+          if (pendingQuizAdvanceRef.current) {
+            setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
+            pendingQuizAdvanceRef.current = false;
+            dispatchStage({ type: "QUIZ_FAILED" });
+          }
           return;
         }
+
         setQuizQuestions(questions);
         setQuizMeta(payload.meta);
+        setQuizPreparedFor(quizRequestKey);
+        setQuizStatus("ready");
+
+        if (pendingQuizAdvanceRef.current) {
+          pendingQuizAdvanceRef.current = false;
+          dispatchStage({ type: "QUIZ_READY" });
+        }
       } catch {
-        setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
-        dispatchStage({ type: "QUIZ_FAILED" });
-        return;
+        setQuizStatus("error");
+        if (pendingQuizAdvanceRef.current) {
+          setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
+          pendingQuizAdvanceRef.current = false;
+          dispatchStage({ type: "QUIZ_FAILED" });
+        }
       }
+    },
+    [quizPreparedFor, quizRequestKey, quizStatus, selectedVideo],
+  );
+
+  const completeReflection = useCallback(() => {
+    if (!selectedVideo) return;
+    saveReflection({
+      prompts: [
+        "What is the single most important idea from this video?",
+        "Where could this concept fail if applied incorrectly?",
+        "What concrete action will you take today to apply this?",
+      ],
+      response: "Timed reflection completed.",
+      durationSeconds: THINK_SECONDS,
+      completedAt: new Date().toISOString(),
+    });
+
+    setReflectionFinished(true);
+    setQuizIndex(0);
+    setQuizHistory([]);
+    if (quizPreparedFor === quizRequestKey && quizStatus === "ready") {
       dispatchStage({ type: "QUIZ_READY" });
-    })();
-  }, [selectedVideo, setUiError]);
+      return;
+    }
+
+    dispatchStage({ type: "START_SEARCH" });
+    void requestQuizGeneration(true);
+  }, [quizPreparedFor, quizRequestKey, quizStatus, requestQuizGeneration, selectedVideo]);
 
   useEffect(() => {
     if (stage !== "watching" || !embedId || !playerRootRef.current) return;
@@ -380,6 +434,13 @@ export default function LandingPage() {
   }, [stage]);
 
   useEffect(() => {
+    if (stage !== "watching" || !quizRequestKey) return;
+    if (watchPercent < 50) return;
+    if (quizPreparedFor === quizRequestKey || quizStatus === "loading" || quizStatus === "ready") return;
+    void requestQuizGeneration(false);
+  }, [quizPreparedFor, quizRequestKey, quizStatus, requestQuizGeneration, stage, watchPercent]);
+
+  useEffect(() => {
     if (stage !== "reflecting") return;
 
     const timer = window.setInterval(() => {
@@ -405,6 +466,8 @@ export default function LandingPage() {
     setQuizAnswers({});
     setQuizQuestions([]);
     setQuizMeta({ source: "fallback", basis: "general-topic" });
+    setQuizStatus("idle");
+    setQuizPreparedFor(null);
     setQuizIndex(0);
     setQuizHistory([]);
     setQuizResult(null);
@@ -414,6 +477,7 @@ export default function LandingPage() {
     setScoreStep("result");
     setReflectionFinished(false);
     setWatchStats({ watchedSeconds: 0, durationSeconds: 0, watchCompletedAt: null });
+    pendingQuizAdvanceRef.current = false;
 
     let nextCandidates: VideoCandidate[] = [];
     let nextRetrieval = EMPTY_RETRIEVAL;
