@@ -243,6 +243,43 @@ const buildScoredCandidates = (
     .sort((a, b) => b.score - a.score);
 };
 
+const buildLooseFallbackCandidates = (
+  topic: string,
+  filters: SessionFilters,
+  items: YouTubeSearchItem[],
+  durations: Record<string, number>,
+  feedbackSignals: FeedbackSignals,
+): ScoredCandidate[] => {
+  return items
+    .map((item) => {
+      const videoId = item.id.videoId;
+      if (!videoId) return null;
+
+      const inferredDuration = durations[videoId] ?? filters.maxLengthMinutes;
+      const durationMinutes = inferredDuration > 0 && inferredDuration <= 180 ? inferredDuration : filters.maxLengthMinutes;
+
+      return {
+        id: videoId,
+        title: item.snippet.title,
+        channel: item.snippet.channelTitle,
+        description: item.snippet.description,
+        durationMinutes,
+        videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        score: scoreCandidate(
+          topic,
+          filters,
+          item.snippet.title,
+          item.snippet.channelTitle,
+          item.snippet.description,
+          durationMinutes,
+          feedbackSignals,
+        ),
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .sort((a, b) => b.score - a.score);
+};
+
 const pickDeterministicTopThree = (scored: ScoredCandidate[]): ScoredCandidate[] => {
   if (scored.length <= 3) return scored.slice(0, 3);
 
@@ -629,7 +666,9 @@ export const searchYouTubeCandidates = async (
   );
 
   const scored = buildScoredCandidates(topic, filters, items, durations, feedbackSignals);
-  if (scored.length < 3) {
+  const fallbackScored = scored.length < 3 ? buildLooseFallbackCandidates(topic, filters, items, durations, feedbackSignals) : scored;
+
+  if (fallbackScored.length < 3) {
     return {
       candidates: [],
       source: "mock",
@@ -641,8 +680,8 @@ export const searchYouTubeCandidates = async (
         aiAttempted: false,
         feedbackAdjusted: feedbackSignals.sampleCount > 0,
         feedbackSamples: feedbackSignals.sampleCount,
-        shortlistSize: scored.length,
-        candidates: scored.slice(0, 5).map((item) => ({
+        shortlistSize: fallbackScored.length,
+        candidates: fallbackScored.slice(0, 5).map((item) => ({
           id: item.id,
           title: item.title,
           channel: item.channel,
@@ -653,8 +692,8 @@ export const searchYouTubeCandidates = async (
     };
   }
 
-  const deterministicTop = pickDeterministicTopThree(scored);
-  const aiResult = await rerankWithAI(topic, filters, scored);
+  const deterministicTop = pickDeterministicTopThree(fallbackScored);
+  const aiResult = await rerankWithAI(topic, filters, fallbackScored);
   const finalRanked = aiResult.ranked ?? deterministicTop;
   const aiUsed = Boolean(aiResult.ranked);
 
@@ -669,8 +708,8 @@ export const searchYouTubeCandidates = async (
       aiFailureReason: aiResult.failureReason,
       feedbackAdjusted: feedbackSignals.sampleCount > 0,
       feedbackSamples: feedbackSignals.sampleCount,
-      shortlistSize: scored.length,
-      candidates: scored.slice(0, 5).map((item) => ({
+      shortlistSize: fallbackScored.length,
+      candidates: fallbackScored.slice(0, 5).map((item) => ({
         id: item.id,
         title: item.title,
         channel: item.channel,
