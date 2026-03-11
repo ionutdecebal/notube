@@ -101,9 +101,13 @@ const buildQueryVariants = (topic: string, filters: SessionFilters): string[] =>
       : ["full tutorial", "deep dive", "complete guide"];
 
   return unique([
+    topic,
+    `${topic} tutorial`,
+    `${topic} explained`,
     `${topic} ${modeTerms[0]} ${difficultyTerm}`,
     `${topic} ${modeTerms[1]} ${difficultyTerm}`,
     `${topic} ${modeTerms[2]} tutorial`,
+    `${topic} ${difficultyTerm}`,
   ]);
 };
 
