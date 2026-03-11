@@ -72,6 +72,8 @@ export interface Reflection {
   completedAt: string;
 }
 
+export type QuizMode = "standard" | "advanced";
+
 export interface QuizQuestion {
   id: string;
   prompt: string;

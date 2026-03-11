@@ -4,6 +4,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { calculateLearningScore } from "@/lib/scoring";
 import { parseTopicInput } from "@/lib/topic-preferences";
+import { readUserSettings } from "@/lib/user-settings";
 import { LearningScore, QuizQuestion, RankingMeta, RetrievalMeta, VideoCandidate } from "@/lib/types";
 import {
   addSkipEvent,
@@ -255,12 +256,14 @@ export default function LandingPage() {
     void (async () => {
       try {
         const state = getDemoState();
+        const settings = readUserSettings();
         const response = await fetch("/api/generate-quiz", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             topic: state.session.topic,
             filters: state.session.filters,
+            quizMode: settings.quizMode,
             selectedVideo: {
               title: selectedVideo.title,
               channel: selectedVideo.channel,
@@ -279,10 +282,13 @@ export default function LandingPage() {
           questions?: QuizQuestion[];
           meta?: QuizMeta;
         };
+        const requiredOptionCount = settings.quizMode === "advanced" ? 4 : 3;
+        const requiredQuestionCount = settings.quizMode === "advanced" ? 4 : 3;
         const questions =
-          payload.questions?.filter((question) => question.options.length === 3).slice(0, 3) ??
-          [];
-        if (payload.meta?.source !== "ai" || questions.length < 3) {
+          payload.questions
+            ?.filter((question) => question.options.length === requiredOptionCount)
+            .slice(0, requiredQuestionCount) ?? [];
+        if (payload.meta?.source !== "ai" || questions.length < requiredQuestionCount) {
           setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
           dispatchStage({ type: "QUIZ_FAILED" });
           return;
@@ -927,7 +933,9 @@ export default function LandingPage() {
         <div className="mx-auto w-full max-w-4xl">
           {stage === "quiz" && currentQuizQuestion ? (
             <div className="rounded-2xl border border-white/80 bg-transparent px-3 py-3 sm:px-4 sm:py-3.5">
-              <p className="mb-2 text-xs text-zinc-500">Pick one answer</p>
+              <p className="mb-2 text-xs text-zinc-500">
+                Pick one answer from {currentQuizQuestion.options.length} choices
+              </p>
               <div className="flex flex-wrap gap-2">
                 {currentQuizQuestion.options.map((option) => (
                   <button

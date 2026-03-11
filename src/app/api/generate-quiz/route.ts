@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { generateQuizQuestions } from "@/lib/quiz/generate-quiz";
-import { SessionFilters } from "@/lib/types";
+import { QuizMode, SessionFilters } from "@/lib/types";
 
 interface GenerateQuizRequest {
   topic?: string;
   filters?: SessionFilters;
+  quizMode?: QuizMode;
   selectedVideo?: {
     title?: string;
     channel?: string;
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
   const body = (await request.json()) as GenerateQuizRequest;
   const topic = body.topic?.trim();
   const filters = body.filters;
+  const quizMode = body.quizMode === "advanced" ? "advanced" : "standard";
   const selectedVideo = body.selectedVideo;
 
   if (!topic || !isValidFilters(filters) || !selectedVideo?.title || !selectedVideo.channel || !selectedVideo.reasonSelected) {
@@ -34,6 +36,7 @@ export async function POST(request: Request) {
   const result = await generateQuizQuestions({
     topic,
     filters,
+    quizMode,
     selectedVideo: {
       title: selectedVideo.title,
       channel: selectedVideo.channel,

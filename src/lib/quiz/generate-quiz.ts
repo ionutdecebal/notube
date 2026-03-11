@@ -1,6 +1,6 @@
 import "server-only";
 
-import { QuizQuestion, SessionFilters } from "@/lib/types";
+import { QuizMode, QuizQuestion, SessionFilters } from "@/lib/types";
 
 const OPENAI_API_BASE = "https://api.openai.com/v1";
 const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
@@ -8,6 +8,7 @@ const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 interface QuizContext {
   topic: string;
   filters: SessionFilters;
+  quizMode: QuizMode;
   selectedVideo: {
     title: string;
     channel: string;
@@ -60,8 +61,79 @@ const buildThreeOptionQuestion = (
   };
 };
 
+const buildFourOptionQuestion = (
+  id: string,
+  prompt: string,
+  correct: string,
+  distractors: [string, string, string],
+): QuizQuestion => {
+  const raw = shuffle([
+    { id: "a", label: correct, isCorrect: true },
+    { id: "b", label: distractors[0], isCorrect: false },
+    { id: "c", label: distractors[1], isCorrect: false },
+    { id: "d", label: distractors[2], isCorrect: false },
+  ]);
+  const options = raw.map((item, idx) => ({
+    id: idx === 0 ? "a" : idx === 1 ? "b" : idx === 2 ? "c" : "d",
+    label: item.label,
+  }));
+  const correctOption = raw.find((item) => item.isCorrect);
+
+  return {
+    id,
+    prompt,
+    options,
+    correctOptionId:
+      options.find((option) => option.label === correctOption?.label)?.id ?? "a",
+  };
+};
+
 const fallbackQuestions = (context: QuizContext): QuizQuestion[] => {
   const t = context.topic;
+  if (context.quizMode === "advanced") {
+    return [
+      buildFourOptionQuestion(
+        "q1",
+        `Which statement best captures the main idea behind ${t}?`,
+        `It identifies the core principle that makes ${t} work`,
+        [
+          `${t} only matters for experts`,
+          `${t} is mostly terminology without application`,
+          `${t} has one fixed pattern for every situation`,
+        ],
+      ),
+      buildFourOptionQuestion(
+        "q2",
+        `What is the strongest first step to apply ${t}?`,
+        "Test it in a small practical example and inspect the outcome",
+        [
+          "Avoid practice until every detail is memorized",
+          "Jump straight to the hardest use case",
+          "Focus only on definitions and skip experiments",
+        ],
+      ),
+      buildFourOptionQuestion(
+        "q3",
+        `Which habit would most weaken learning retention for ${t}?`,
+        "Passive watching without checking whether you can explain it back",
+        [
+          "Summarizing the key idea after the lesson",
+          "Comparing two valid approaches",
+          "Revisiting the topic with a second example",
+        ],
+      ),
+      buildFourOptionQuestion(
+        "q4",
+        `What evidence would best show a strong understanding of ${t}?`,
+        "You can explain it clearly and apply it to a new example",
+        [
+          "You finished the lesson without pausing",
+          "You can recall one isolated phrase",
+          "You watched two related videos in a row",
+        ],
+      ),
+    ];
+  }
   return [
     buildThreeOptionQuestion(
       "q1",
@@ -84,12 +156,12 @@ const fallbackQuestions = (context: QuizContext): QuizQuestion[] => {
   ];
 };
 
-const isValidQuiz = (questions: QuizQuestion[]): boolean =>
-  questions.length >= 3 &&
+const isValidQuiz = (questions: QuizQuestion[], quizMode: QuizMode): boolean =>
+  questions.length >= (quizMode === "advanced" ? 4 : 3) &&
   questions.every(
     (question) =>
       question.prompt.trim().length > 0 &&
-      question.options.length === 3 &&
+      question.options.length === (quizMode === "advanced" ? 4 : 3) &&
       question.options.every((option) => option.id && option.label.trim().length > 0) &&
       question.options.some((option) => option.id === question.correctOptionId),
   );
@@ -119,14 +191,17 @@ export const generateQuizQuestions = async (
         messages: [
           {
             role: "system",
-            content:
-              "Return strict JSON only with shape {\"questions\":[...]} where each question has exactly 3 options. Use option ids a,b,c.",
+            content: `Return strict JSON only with shape {"questions":[...]} where each question has exactly ${
+              context.quizMode === "advanced" ? 4 : 3
+            } options. Use option ids ${context.quizMode === "advanced" ? "a,b,c,d" : "a,b,c"}.`,
           },
           {
             role: "user",
             content: JSON.stringify({
               instruction:
-                "Create 3 multiple-choice questions to test retention and understanding. Exactly 3 options per question. One correct option.",
+                context.quizMode === "advanced"
+                  ? "Create 4 more demanding multiple-choice questions to test retention, transfer, and reasoning. Exactly 4 options per question. One correct option."
+                  : "Create 3 multiple-choice questions to test retention and understanding. Exactly 3 options per question. One correct option.",
               context,
               outputSchema: {
                 questions: [
@@ -137,8 +212,9 @@ export const generateQuizQuestions = async (
                       { id: "a", label: "string" },
                       { id: "b", label: "string" },
                       { id: "c", label: "string" },
+                      ...(context.quizMode === "advanced" ? [{ id: "d", label: "string" }] : []),
                     ],
-                    correctOptionId: "a|b|c",
+                    correctOptionId: context.quizMode === "advanced" ? "a|b|c|d" : "a|b|c",
                   },
                 ],
               },
@@ -169,17 +245,21 @@ export const generateQuizQuestions = async (
     const parsed = JSON.parse(content) as {
       questions?: QuizQuestion[];
     };
-    const questions = (parsed.questions ?? []).slice(0, 3).map((question, index) => ({
+    const optionCount = context.quizMode === "advanced" ? 4 : 3;
+    const questionCount = context.quizMode === "advanced" ? 4 : 3;
+    const questions = (parsed.questions ?? []).slice(0, questionCount).map((question, index) => ({
       id: question.id || `q${index + 1}`,
       prompt: question.prompt,
-      options: question.options.slice(0, 3).map((option, optionIndex) => ({
-        id: option.id || (optionIndex === 0 ? "a" : optionIndex === 1 ? "b" : "c"),
+      options: question.options.slice(0, optionCount).map((option, optionIndex) => ({
+        id:
+          option.id ||
+          (optionIndex === 0 ? "a" : optionIndex === 1 ? "b" : optionIndex === 2 ? "c" : "d"),
         label: option.label,
       })),
       correctOptionId: question.correctOptionId,
     }));
 
-    if (!isValidQuiz(questions)) {
+    if (!isValidQuiz(questions, context.quizMode)) {
       return {
         questions: fallbackQuestions(context),
         meta: { source: "fallback", basis: "general-topic" },
