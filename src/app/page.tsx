@@ -575,12 +575,12 @@ export default function LandingPage() {
   if (stage === "idle") {
     return (
       <main className="relative flex min-h-[100svh] items-start justify-center px-4 pb-8 pt-16 sm:items-center sm:py-8">
-        <div className="w-full max-w-3xl space-y-5 text-center sm:space-y-8">
-          <p className="text-lg font-light uppercase tracking-[0.24em] text-zinc-400 sm:text-xl sm:tracking-[0.3em]">NOTUBE</p>
+        <div className="w-full max-w-3xl space-y-6 text-center sm:space-y-8">
+          <p className="text-xl font-medium uppercase tracking-[0.28em] text-zinc-200 sm:text-xl sm:tracking-[0.3em]">NOTUBE</p>
           <h1 className="text-balance text-3xl font-medium leading-[1.08] tracking-tight text-zinc-100 sm:text-5xl">
             Built for focus.
           </h1>
-          <p className="text-sm font-light text-zinc-500 sm:text-lg">
+          <p className="text-base font-light text-zinc-300 sm:text-lg">
             Distraction-free YouTube for learning.
           </p>
 
@@ -601,6 +601,21 @@ export default function LandingPage() {
               />
             </label>
           </form>
+
+          <section className="mx-auto w-full max-w-2xl rounded-2xl border border-zinc-800 bg-zinc-950/70 px-4 py-4 text-left sm:px-5 sm:py-5">
+            <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">How it works</p>
+            <div className="mt-3 space-y-3">
+              <p className="text-sm text-zinc-200 sm:text-base">
+                1. Type a topic and get one main lesson chosen for focus.
+              </p>
+              <p className="text-sm text-zinc-300 sm:text-base">
+                2. Watch without YouTube noise, then do a short reflection.
+              </p>
+              <p className="text-sm text-zinc-300 sm:text-base">
+                3. Take a quick quiz and open backups only if you need another angle.
+              </p>
+            </div>
+          </section>
         </div>
       </main>
     );
