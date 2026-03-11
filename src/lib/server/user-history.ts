@@ -1,16 +1,8 @@
 import "server-only";
 
-import { desc, eq, getTableColumns } from "drizzle-orm";
+import { avg, count, desc, eq, sum } from "drizzle-orm";
 import { getDb } from "@/db";
 import { sessionStates } from "@/db/schema";
-import { DemoState } from "@/lib/types";
-
-interface SessionStateRow {
-  id: string;
-  userId: string | null;
-  state: DemoState;
-  updatedAt: Date;
-}
 
 export interface UserSessionSummary {
   id: string;
@@ -36,65 +28,92 @@ export interface UserStatsSummary {
   feedbackCount: number;
 }
 
-const toSummary = (row: SessionStateRow): UserSessionSummary => {
-  const selectedVideo =
-    row.state.videoCandidates.find((video) => video.id === row.state.session.selectedVideoId) ??
-    row.state.videoCandidates[0];
-  const watchedSeconds = row.state.watchProgress.durationSeconds
-    ? row.state.watchProgress.watchedSeconds / row.state.watchProgress.durationSeconds
-    : 0;
-  const watchPercent = Math.max(0, Math.min(100, Math.round(watchedSeconds * 100)));
-  const backupOpenCount = row.state.skipEvents.filter((event) => event.stage === "watch").length;
-
+const toSummary = (row: {
+  id: string;
+  topic: string;
+  selectedVideoTitle: string;
+  selectedVideoChannel: string;
+  createdAt: Date;
+  updatedAt: Date;
+  quizScore: number | null;
+  quizCompleted: boolean;
+  watchPercent: number;
+  reflectionCompleted: boolean;
+  backupsOpened: number;
+  feedbackCount: number;
+}): UserSessionSummary => {
   return {
     id: row.id,
-    topic: row.state.session.topic,
-    selectedVideoTitle: selectedVideo?.title ?? "Lesson unavailable",
-    selectedVideoChannel: selectedVideo?.channel ?? "Unknown channel",
-    createdAt: row.state.session.createdAt,
+    topic: row.topic,
+    selectedVideoTitle: row.selectedVideoTitle || "Lesson unavailable",
+    selectedVideoChannel: row.selectedVideoChannel || "Unknown channel",
+    createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-    quizScore: row.state.learningScore?.total ?? null,
-    quizCompleted: Boolean(row.state.quizAttempt && row.state.learningScore),
-    watchPercent,
-    reflectionCompleted: Boolean(row.state.reflection),
-    backupsOpened: backupOpenCount,
-    feedbackCount: row.state.suggestionFeedback.length,
+    quizScore: row.quizScore,
+    quizCompleted: row.quizCompleted,
+    watchPercent: row.watchPercent,
+    reflectionCompleted: row.reflectionCompleted,
+    backupsOpened: row.backupsOpened,
+    feedbackCount: row.feedbackCount,
   };
 };
 
 export const getUserSessionSummaries = async (userId: string): Promise<UserSessionSummary[]> => {
   const db = getDb();
   const rows = await db
-    .select(getTableColumns(sessionStates))
+    .select({
+      id: sessionStates.id,
+      topic: sessionStates.topic,
+      selectedVideoTitle: sessionStates.selectedVideoTitle,
+      selectedVideoChannel: sessionStates.selectedVideoChannel,
+      createdAt: sessionStates.createdAt,
+      updatedAt: sessionStates.updatedAt,
+      quizScore: sessionStates.quizScore,
+      quizCompleted: sessionStates.quizCompleted,
+      watchPercent: sessionStates.watchPercent,
+      reflectionCompleted: sessionStates.reflectionCompleted,
+      backupsOpened: sessionStates.backupsOpened,
+      feedbackCount: sessionStates.feedbackCount,
+    })
     .from(sessionStates)
     .where(eq(sessionStates.userId, userId))
     .orderBy(desc(sessionStates.updatedAt));
 
-  return rows.map((row) => toSummary(row as SessionStateRow));
+  return rows.map((row) => toSummary(row));
 };
 
 export const getUserStatsSummary = async (userId: string): Promise<UserStatsSummary> => {
-  const sessions = await getUserSessionSummaries(userId);
+  const db = getDb();
+  const [totals] = await db
+    .select({
+      sessionCount: count(),
+      averageQuizScore: avg(sessionStates.quizScore).mapWith((value) =>
+        value === null ? null : Math.round(Number(value)),
+      ),
+      averageWatchPercent: avg(sessionStates.watchPercent).mapWith((value) =>
+        value === null ? 0 : Math.round(Number(value)),
+      ),
+      backupOpenCount: sum(sessionStates.backupsOpened).mapWith((value) => Number(value ?? 0)),
+      feedbackCount: sum(sessionStates.feedbackCount).mapWith((value) => Number(value ?? 0)),
+    })
+    .from(sessionStates)
+    .where(eq(sessionStates.userId, userId));
+
+  const sessions = await db
+    .select({
+      quizCompleted: sessionStates.quizCompleted,
+    })
+    .from(sessionStates)
+    .where(eq(sessionStates.userId, userId));
 
   const completedCount = sessions.filter((session) => session.quizCompleted).length;
-  const scoredSessions = sessions.filter((session) => session.quizScore !== null);
-  const averageQuizScore = scoredSessions.length
-    ? Math.round(
-        scoredSessions.reduce((total, session) => total + (session.quizScore ?? 0), 0) / scoredSessions.length,
-      )
-    : null;
-  const averageWatchPercent = sessions.length
-    ? Math.round(sessions.reduce((total, session) => total + session.watchPercent, 0) / sessions.length)
-    : 0;
-  const backupOpenCount = sessions.reduce((total, session) => total + session.backupsOpened, 0);
-  const feedbackCount = sessions.reduce((total, session) => total + session.feedbackCount, 0);
 
   return {
-    sessionCount: sessions.length,
+    sessionCount: totals?.sessionCount ?? sessions.length,
     completedCount,
-    averageQuizScore,
-    averageWatchPercent,
-    backupOpenCount,
-    feedbackCount,
+    averageQuizScore: totals?.averageQuizScore ?? null,
+    averageWatchPercent: totals?.averageWatchPercent ?? 0,
+    backupOpenCount: totals?.backupOpenCount ?? 0,
+    feedbackCount: totals?.feedbackCount ?? 0,
   };
 };

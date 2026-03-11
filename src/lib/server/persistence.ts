@@ -30,16 +30,42 @@ const tokenize = (text: string): string[] =>
     .split(/[^a-z0-9]+/)
     .filter((token) => token.length >= 4);
 
+const getNormalizedSessionState = (state: DemoState) => {
+  const selectedVideo =
+    state.videoCandidates.find((video) => video.id === state.session.selectedVideoId) ??
+    state.videoCandidates[0] ??
+    null;
+  const watchRatio = state.watchProgress.durationSeconds
+    ? state.watchProgress.watchedSeconds / state.watchProgress.durationSeconds
+    : 0;
+
+  return {
+    topic: state.session.topic,
+    selectedVideoId: state.session.selectedVideoId,
+    selectedVideoTitle: selectedVideo?.title ?? "",
+    selectedVideoChannel: selectedVideo?.channel ?? "",
+    createdAt: new Date(state.session.createdAt),
+    watchPercent: Math.max(0, Math.min(100, Math.round(watchRatio * 100))),
+    quizScore: state.learningScore?.total ?? null,
+    quizCompleted: Boolean(state.quizAttempt && state.learningScore),
+    reflectionCompleted: Boolean(state.reflection),
+    backupsOpened: state.skipEvents.filter((event) => event.stage === "watch").length,
+    feedbackCount: state.suggestionFeedback.length,
+  };
+};
+
 export const upsertSessionState = async (state: DemoState, userId?: string | null) => {
   writeQueue = writeQueue.then(async () => {
     const db = getDb();
     const updatedAt = new Date();
+    const normalizedState = getNormalizedSessionState(state);
 
     await db
       .insert(sessionStates)
       .values({
         id: state.session.id,
         userId: userId ?? null,
+        ...normalizedState,
         state,
         updatedAt,
       })
@@ -47,6 +73,7 @@ export const upsertSessionState = async (state: DemoState, userId?: string | nul
         target: sessionStates.id,
         set: {
           userId: userId ?? null,
+          ...normalizedState,
           state,
           updatedAt,
         },
