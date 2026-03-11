@@ -282,8 +282,8 @@ export default function LandingPage() {
           questions?: QuizQuestion[];
           meta?: QuizMeta;
         };
-        const requiredOptionCount = settings.quizMode === "advanced" ? 4 : 3;
-        const requiredQuestionCount = settings.quizMode === "advanced" ? 4 : 3;
+        const requiredOptionCount = 3;
+        const requiredQuestionCount = settings.quizMode === "advanced" ? 10 : 3;
         const questions =
           payload.questions
             ?.filter((question) => question.options.length === requiredOptionCount)

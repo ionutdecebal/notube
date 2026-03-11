@@ -20,7 +20,7 @@ export default function AccountPage() {
               <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Quiz mode</p>
               <p className="text-base text-zinc-100">Advanced quiz mode</p>
               <p className="text-sm text-zinc-400">
-                Adds a longer quiz with four answer choices per question.
+                Enables a 10-question quiz that starts easy and becomes much harder.
               </p>
             </div>
             <button

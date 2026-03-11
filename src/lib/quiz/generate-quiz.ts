@@ -61,75 +61,98 @@ const buildThreeOptionQuestion = (
   };
 };
 
-const buildFourOptionQuestion = (
-  id: string,
-  prompt: string,
-  correct: string,
-  distractors: [string, string, string],
-): QuizQuestion => {
-  const raw = shuffle([
-    { id: "a", label: correct, isCorrect: true },
-    { id: "b", label: distractors[0], isCorrect: false },
-    { id: "c", label: distractors[1], isCorrect: false },
-    { id: "d", label: distractors[2], isCorrect: false },
-  ]);
-  const options = raw.map((item, idx) => ({
-    id: idx === 0 ? "a" : idx === 1 ? "b" : idx === 2 ? "c" : "d",
-    label: item.label,
-  }));
-  const correctOption = raw.find((item) => item.isCorrect);
-
-  return {
-    id,
-    prompt,
-    options,
-    correctOptionId:
-      options.find((option) => option.label === correctOption?.label)?.id ?? "a",
-  };
-};
-
 const fallbackQuestions = (context: QuizContext): QuizQuestion[] => {
   const t = context.topic;
   if (context.quizMode === "advanced") {
     return [
-      buildFourOptionQuestion(
+      buildThreeOptionQuestion(
         "q1",
-        `Which statement best captures the main idea behind ${t}?`,
-        `It identifies the core principle that makes ${t} work`,
+        `What is the most basic goal of learning ${t}?`,
+        `To understand the core idea well enough to use it intentionally`,
         [
-          `${t} only matters for experts`,
-          `${t} is mostly terminology without application`,
-          `${t} has one fixed pattern for every situation`,
+          `To collect terms without using them`,
+          `To move on quickly without checking understanding`,
         ],
       ),
-      buildFourOptionQuestion(
+      buildThreeOptionQuestion(
         "q2",
-        `What is the strongest first step to apply ${t}?`,
+        `What is the best first step after watching a lesson on ${t}?`,
         "Test it in a small practical example and inspect the outcome",
         [
           "Avoid practice until every detail is memorized",
           "Jump straight to the hardest use case",
-          "Focus only on definitions and skip experiments",
         ],
       ),
-      buildFourOptionQuestion(
+      buildThreeOptionQuestion(
         "q3",
-        `Which habit would most weaken learning retention for ${t}?`,
+        `Which habit would most hurt your retention of ${t}?`,
         "Passive watching without checking whether you can explain it back",
         [
           "Summarizing the key idea after the lesson",
-          "Comparing two valid approaches",
           "Revisiting the topic with a second example",
         ],
       ),
-      buildFourOptionQuestion(
+      buildThreeOptionQuestion(
         "q4",
-        `What evidence would best show a strong understanding of ${t}?`,
+        `What best shows that you understand ${t} at a practical level?`,
         "You can explain it clearly and apply it to a new example",
         [
-          "You finished the lesson without pausing",
           "You can recall one isolated phrase",
           "You watched two related videos in a row",
+        ],
+      ),
+      buildThreeOptionQuestion(
+        "q5",
+        `When applying ${t}, what matters more than memorizing definitions?`,
+        "Knowing when and why to use the idea in context",
+        [
+          "Repeating the same summary word for word",
+          "Avoiding any variation from the original example",
+        ],
+      ),
+      buildThreeOptionQuestion(
+        "q6",
+        `Which mistake suggests shallow understanding of ${t}?`,
+        "Using the idea without checking whether the assumptions still hold",
+        [
+          "Testing the idea on a second example",
+          "Comparing two plausible interpretations",
+        ],
+      ),
+      buildThreeOptionQuestion(
+        "q7",
+        `What would be the strongest sign that ${t} transfers beyond the original lesson?`,
+        "You can adapt the idea to a new case with different surface details",
+        [
+          "You can repeat the original example perfectly",
+          "You can list the chapter titles in order",
+        ],
+      ),
+      buildThreeOptionQuestion(
+        "q8",
+        `If two approaches to ${t} both seem plausible, what should you do next?`,
+        "Compare the tradeoffs and choose based on the problem context",
+        [
+          "Assume the first one mentioned is always best",
+          "Avoid making a choice until you find a single universal rule",
+        ],
+      ),
+      buildThreeOptionQuestion(
+        "q9",
+        `What kind of question shows deeper mastery of ${t}?`,
+        "Asking where the method breaks, not just where it works",
+        [
+          "Asking how to memorize the explanation faster",
+          "Asking how to finish the lesson without pausing",
+        ],
+      ),
+      buildThreeOptionQuestion(
+        "q10",
+        `What is the strongest final test of whether you truly understand ${t}?`,
+        "You can explain the idea, apply it, and predict where it may fail",
+        [
+          "You remember the thumbnail and title of the lesson",
+          "You can recognize the topic name in a list",
         ],
       ),
     ];
@@ -157,11 +180,11 @@ const fallbackQuestions = (context: QuizContext): QuizQuestion[] => {
 };
 
 const isValidQuiz = (questions: QuizQuestion[], quizMode: QuizMode): boolean =>
-  questions.length >= (quizMode === "advanced" ? 4 : 3) &&
+  questions.length >= (quizMode === "advanced" ? 10 : 3) &&
   questions.every(
     (question) =>
       question.prompt.trim().length > 0 &&
-      question.options.length === (quizMode === "advanced" ? 4 : 3) &&
+      question.options.length === 3 &&
       question.options.every((option) => option.id && option.label.trim().length > 0) &&
       question.options.some((option) => option.id === question.correctOptionId),
   );
@@ -191,16 +214,15 @@ export const generateQuizQuestions = async (
         messages: [
           {
             role: "system",
-            content: `Return strict JSON only with shape {"questions":[...]} where each question has exactly ${
-              context.quizMode === "advanced" ? 4 : 3
-            } options. Use option ids ${context.quizMode === "advanced" ? "a,b,c,d" : "a,b,c"}.`,
+            content:
+              'Return strict JSON only with shape {"questions":[...]} where each question has exactly 3 options. Use option ids a,b,c.',
           },
           {
             role: "user",
             content: JSON.stringify({
               instruction:
                 context.quizMode === "advanced"
-                  ? "Create 4 more demanding multiple-choice questions to test retention, transfer, and reasoning. Exactly 4 options per question. One correct option."
+                  ? "Create 10 multiple-choice questions that progressively increase in difficulty from basic recall to transfer, tradeoffs, edge cases, and failure analysis. Exactly 3 options per question. One correct option."
                   : "Create 3 multiple-choice questions to test retention and understanding. Exactly 3 options per question. One correct option.",
               context,
               outputSchema: {
@@ -212,9 +234,8 @@ export const generateQuizQuestions = async (
                       { id: "a", label: "string" },
                       { id: "b", label: "string" },
                       { id: "c", label: "string" },
-                      ...(context.quizMode === "advanced" ? [{ id: "d", label: "string" }] : []),
                     ],
-                    correctOptionId: context.quizMode === "advanced" ? "a|b|c|d" : "a|b|c",
+                    correctOptionId: "a|b|c",
                   },
                 ],
               },
@@ -245,15 +266,13 @@ export const generateQuizQuestions = async (
     const parsed = JSON.parse(content) as {
       questions?: QuizQuestion[];
     };
-    const optionCount = context.quizMode === "advanced" ? 4 : 3;
-    const questionCount = context.quizMode === "advanced" ? 4 : 3;
+    const optionCount = 3;
+    const questionCount = context.quizMode === "advanced" ? 10 : 3;
     const questions = (parsed.questions ?? []).slice(0, questionCount).map((question, index) => ({
       id: question.id || `q${index + 1}`,
       prompt: question.prompt,
       options: question.options.slice(0, optionCount).map((option, optionIndex) => ({
-        id:
-          option.id ||
-          (optionIndex === 0 ? "a" : optionIndex === 1 ? "b" : optionIndex === 2 ? "c" : "d"),
+        id: option.id || (optionIndex === 0 ? "a" : optionIndex === 1 ? "b" : "c"),
         label: option.label,
       })),
       correctOptionId: question.correctOptionId,
