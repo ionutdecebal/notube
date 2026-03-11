@@ -760,14 +760,15 @@ export default function LandingPage() {
       <main className="relative flex min-h-[calc(100svh-4rem)] items-start justify-center px-4 pb-8 pt-8 sm:items-center sm:py-8">
         <div className="w-full max-w-3xl space-y-6 text-center sm:space-y-8">
           <h1 className="text-balance text-3xl font-medium leading-[1.08] tracking-tight text-zinc-100 sm:text-5xl">
-            Escape the YouTube algorithm.
+            You opened YouTube to learn.
           </h1>
           <p className="text-base font-light text-zinc-300 sm:text-lg">
-            Keep the knowledge.
+            Forty minutes later, you are somewhere else.
           </p>
           <p className="mx-auto max-w-2xl text-sm text-zinc-400 sm:text-base">
-            YouTube is one of the best places to learn. It is also one of the best systems ever built for losing an hour without meaning to.
-            NOTUBE keeps the useful part and removes the drift.
+            YouTube is one of the best places to learn practical things. It is also very good at turning a useful search into an
+            algorithmic detour. For a lot of people, learning is the reason they keep going back. NOTUBE keeps that reason intact and
+            removes the part that pulls you off course.
           </p>
 
           <form onSubmit={submitComposer} className="mx-auto w-full max-w-2xl">
@@ -792,13 +793,19 @@ export default function LandingPage() {
             <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">How it works</p>
             <div className="mt-3 space-y-3">
               <p className="text-sm text-zinc-200 sm:text-base">
-                1. Pick a topic. NOTUBE gives you one lesson, not an endless feed.
+                1. Start with intent. Type what you want to learn.
               </p>
               <p className="text-sm text-zinc-300 sm:text-base">
-                2. Watch in a clean session built for understanding, not watch time.
+                2. Get one lesson. Watch in a clean session built for focus.
               </p>
               <p className="text-sm text-zinc-300 sm:text-base">
-                3. Reflect, verify what stuck, then choose a simpler or deeper backup path if you need to go further.
+                3. Stop and think. Turn watching into understanding.
+              </p>
+              <p className="text-sm text-zinc-300 sm:text-base">
+                4. Take the quiz. Check what actually stuck.
+              </p>
+              <p className="text-sm text-zinc-300 sm:text-base">
+                5. Go deeper only if you mean to. Two backup paths. Then the session ends.
               </p>
             </div>
           </section>
@@ -907,7 +914,7 @@ export default function LandingPage() {
                       Enter Think Mode
                     </button>
                     <p className="mt-2 text-xs text-zinc-500">
-                      Unlocks at 85%. The session moves forward automatically at 100%.
+                      Think Mode opens at 85%. At 100%, the session moves on.
                     </p>
                   </div>
                 ) : null}
@@ -917,7 +924,8 @@ export default function LandingPage() {
 
           {(stage === "reflecting" || stage === "quiz" || stage === "score") && (
             <article className="max-w-[88%] rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-sm leading-relaxed text-zinc-300 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
-              Think Mode is where you prove to yourself that you were paying attention. Reconstruct the idea, the key moves, and where it could break.
+              Think Mode is the pause. No more input. Just a minute to replay the lesson in your own words before it disappears into
+              the stream.
             </article>
           )}
 
@@ -1047,16 +1055,23 @@ export default function LandingPage() {
 
               {scoreStep === "backups" ? (
                 <div className="space-y-3.5 rounded-xl border border-zinc-800 p-3.5">
-                  <p className="text-sm text-zinc-300">Need another angle? Here are two controlled paths forward.</p>
+                  <p className="text-sm text-zinc-300">
+                    Rabbit holes are not the problem. Uncontrolled ones are. These two backup paths give you a deliberate way to go
+                    further: one simpler, one deeper. A rabbit hole, on rails.
+                  </p>
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <button
                       type="button"
                       onClick={() => setScoreStep("result")}
                       className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-100 transition-colors hover:bg-zinc-900"
-                    >
-                      Back to result
-                    </button>
+                      >
+                        Back to result
+                      </button>
                   </div>
+                  <p className="text-xs text-zinc-500">
+                    If you want to keep going, do it on purpose. One simpler path. One deeper path. Nothing beyond that unless you start
+                    a new session.
+                  </p>
 
                   <div className="space-y-2.5">
                     {backups.map((video, index) => (

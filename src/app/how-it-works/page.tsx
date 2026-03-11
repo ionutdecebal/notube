@@ -5,14 +5,15 @@ export default function HowItWorksPage() {
     <AppSectionPage
       eyebrow="How it works"
       title="A rabbit hole, on rails."
-      description="NOTUBE is built for people who still need YouTube to learn, but do not trust themselves inside the algorithm."
+      description="NOTUBE is for people who still need YouTube to learn, but do not want to hand the session over to the algorithm."
     >
       <div className="space-y-4 text-sm text-zinc-300 sm:text-base">
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
           <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">What NOTUBE does</p>
           <p className="mt-2">
-            YouTube is an incredible learning tool. It is also engineered to keep attention moving. That is the trap: you open it to learn
-            one thing, and the algorithm turns that intention into a drift pattern. NOTUBE keeps the lesson and removes the feed.
+            YouTube is optimized to keep you watching. NOTUBE is optimized to help you understand. That is the whole idea. You still get
+            the value of YouTube as a learning source, but without the feed, the recommendations, and the attention drift that usually
+            comes with it.
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
@@ -25,15 +26,16 @@ export default function HowItWorksPage() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
           <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Focused progression</p>
           <p className="mt-2">
-            The flow is deliberate: watch, stop, think, then test. Reflection is part of the product because understanding usually feels
-            solid right up until you have to explain it back to yourself. The quiz is there to verify, not entertain.
+            The session moves in one direction: watch, think, quiz, then choose whether to go deeper. That structure matters.
+            Understanding usually feels solid while the video is playing. It becomes real when the video stops and you have to
+            reconstruct it yourself.
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
           <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Progress that stays with you</p>
           <p className="mt-2">
-            If the first lesson is not enough, NOTUBE opens exactly two paths: one simpler, one deeper. That is the product in one line:
-            a rabbit hole, on rails. You can go further, but only with intent, and only inside a controlled frame.
+            If the first lesson is not enough, NOTUBE opens exactly two next steps: a simpler explanation and a deeper one. Not twenty
+            recommendations. Not an infinite scroll of adjacent videos. Just enough room to explore with intent. A rabbit hole, on rails.
           </p>
         </div>
       </div>

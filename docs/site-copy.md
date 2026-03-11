@@ -30,15 +30,15 @@
 
 Headline:
 
-`Escape the YouTube algorithm.`
+`You opened YouTube to learn.`
 
 Subhead:
 
-`Keep the knowledge.`
+`Forty minutes later, you are somewhere else.`
 
 Support copy:
 
-`YouTube is one of the best places to learn. It is also one of the best systems ever built for losing an hour without meaning to. NOTUBE keeps the useful part and removes the drift.`
+`YouTube is one of the best places to learn practical things. It is also very good at turning a useful search into an algorithmic detour. For a lot of people, learning is the reason they keep going back. NOTUBE keeps that reason intact and removes the part that pulls you off course.`
 
 Search input placeholder:
 
@@ -52,9 +52,11 @@ Section label:
 
 Steps:
 
-1. `Pick a topic. NOTUBE gives you one lesson, not an endless feed.`
-2. `Watch in a clean session built for understanding, not watch time.`
-3. `Reflect, verify what stuck, then choose a simpler or deeper backup path if you need to go further.`
+1. `Start with intent. Type what you want to learn.`
+2. `Get one lesson. Watch in a clean session built for focus.`
+3. `Stop and think. Turn watching into understanding.`
+4. `Take the quiz. Check what actually stuck.`
+5. `Go deeper only if you mean to. Two backup paths. Then the session ends.`
 
 ## Lesson Flow
 
@@ -92,7 +94,7 @@ Button:
 
 Helper text:
 
-- `Unlocks at 85%. The session moves forward automatically at 100%.`
+- `Think Mode opens at 85%. At 100%, the session moves on.`
 
 Fallback:
 
@@ -102,7 +104,7 @@ Fallback:
 
 Copy:
 
-- `Think Mode is where you prove to yourself that you were paying attention. Reconstruct the idea, the key moves, and where it could break.`
+- `Think Mode is the pause. No more input. Just a minute to replay the lesson in your own words before it disappears into the stream.`
 - `Think Mode complete.`
 
 Quiz labels:
@@ -139,7 +141,8 @@ Feedback labels:
 
 Backups copy:
 
-- `Need another angle? Here are two controlled paths forward.`
+- `Rabbit holes are not the problem. Uncontrolled ones are. These two backup paths give you a deliberate way to go further: one simpler, one deeper. A rabbit hole, on rails.`
+- `If you want to keep going, do it on purpose. One simpler path. One deeper path. Nothing beyond that unless you start a new session.`
 - `Simpler path`
 - `Deeper path`
 
@@ -161,13 +164,13 @@ Title:
 
 Description:
 
-`NOTUBE is built for people who still need YouTube to learn, but do not trust themselves inside the algorithm.`
+`NOTUBE is for people who still need YouTube to learn, but do not want to hand the session over to the algorithm.`
 
 ### Sections
 
 #### What NOTUBE does
 
-`YouTube is an incredible learning tool. It is also engineered to keep attention moving. That is the trap: you open it to learn one thing, and the algorithm turns that intention into a drift pattern. NOTUBE keeps the lesson and removes the feed.`
+`YouTube is optimized to keep you watching. NOTUBE is optimized to help you understand. That is the whole idea. You still get the value of YouTube as a learning source, but without the feed, the recommendations, and the attention drift that usually comes with it.`
 
 #### Lesson selection
 
@@ -175,11 +178,11 @@ Description:
 
 #### Focused progression
 
-`The flow is deliberate: watch, stop, think, then test. Reflection is part of the product because understanding usually feels solid right up until you have to explain it back to yourself. The quiz is there to verify, not entertain.`
+`The session moves in one direction: watch, think, quiz, then choose whether to go deeper. That structure matters. Understanding usually feels solid while the video is playing. It becomes real when the video stops and you have to reconstruct it yourself.`
 
 #### Progress that stays with you
 
-`If the first lesson is not enough, NOTUBE opens exactly two paths: one simpler, one deeper. That is the product in one line: a rabbit hole, on rails. You can go further, but only with intent, and only inside a controlled frame.`
+`If the first lesson is not enough, NOTUBE opens exactly two next steps: a simpler explanation and a deeper one. Not twenty recommendations. Not an infinite scroll of adjacent videos. Just enough room to explore with intent. A rabbit hole, on rails.`
 
 ## Account
 
