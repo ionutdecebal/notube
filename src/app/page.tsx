@@ -623,16 +623,6 @@ export default function LandingPage() {
   return (
     <main className="relative h-[calc(100svh-4rem)] overflow-hidden bg-transparent">
       <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden px-3 pb-32 pt-3 sm:px-6 sm:pb-36 sm:pt-6">
-        <div className="mb-3 flex justify-end sm:mb-4">
-          <button
-            type="button"
-            onClick={() => setShowDebug((prev) => !prev)}
-            className="inline-flex h-8 items-center rounded-full border border-zinc-700 px-3 text-xs text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200"
-            aria-label="Toggle debug details"
-          >
-            {showDebug ? "Hide debug" : "Show debug"}
-          </button>
-        </div>
         <div ref={timelineRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-6 sm:gap-5 sm:pb-8">
           {uiError ? (
             <article className="max-w-[94%] rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100 sm:max-w-[90%] sm:px-5 sm:py-3.5 sm:text-base">
@@ -902,6 +892,15 @@ export default function LandingPage() {
           ) : null}
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={() => setShowDebug((prev) => !prev)}
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] right-4 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-zinc-700 bg-[#0a0d12]/95 text-sm text-zinc-300 shadow-lg transition-colors hover:border-zinc-500 hover:text-zinc-100 sm:bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] sm:right-6"
+        aria-label="Toggle debug details"
+      >
+        ?
+      </button>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-zinc-900/90 bg-[#050608]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-2 backdrop-blur sm:px-5 sm:pb-4 sm:pt-3">
         <div className="mx-auto w-full max-w-4xl">
