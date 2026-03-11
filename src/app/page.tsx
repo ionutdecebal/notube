@@ -141,7 +141,6 @@ export default function LandingPage() {
   const [feedbackRating, setFeedbackRating] = useState<"good" | "neutral" | "bad" | null>(null);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [scoreStep, setScoreStep] = useState<"result" | "feedback" | "backups">("result");
-  const [backupsExpanded, setBackupsExpanded] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
 
   const timelineRef = useRef<HTMLDivElement | null>(null);
@@ -174,7 +173,7 @@ export default function LandingPage() {
   }, [stage, watchStats.watchedSeconds, reflectionSecondsLeft, quizIndex, quizHistory.length, score]);
 
   useEffect(() => {
-    if (stage === "idle" || stage === "score") {
+    if (stage === "idle") {
       composerRef.current?.focus();
     }
   }, [stage]);
@@ -200,7 +199,6 @@ export default function LandingPage() {
     setFeedbackRating(null);
     setFeedbackSubmitted(false);
     setScoreStep("result");
-    setBackupsExpanded(false);
     dispatchStage({ type: "START_WATCH" });
   }, []);
 
@@ -377,7 +375,6 @@ export default function LandingPage() {
     setFeedbackRating(null);
     setFeedbackSubmitted(false);
     setScoreStep("result");
-    setBackupsExpanded(false);
     setReflectionFinished(false);
     setWatchStats({ watchedSeconds: 0, durationSeconds: 0, watchCompletedAt: null });
 
@@ -473,7 +470,6 @@ export default function LandingPage() {
     setQuizResult({ correct: correctCount, total: totalCount });
     setScore(nextScore);
     setScoreStep("result");
-    setBackupsExpanded(false);
     dispatchStage({ type: "QUIZ_SUBMITTED" });
   };
 
@@ -565,6 +561,7 @@ export default function LandingPage() {
                 ref={composerRef}
                 value={composerValue}
                 onChange={(event) => setComposerText(event.target.value)}
+                enterKeyHint="search"
                 placeholder={composerPlaceholder}
                 className="w-full bg-transparent pr-2 text-base text-zinc-100 outline-none placeholder:text-zinc-500 sm:pr-3"
               />
@@ -576,8 +573,8 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="relative min-h-[100svh] bg-transparent">
-      <div className="mx-auto flex w-full max-w-4xl flex-col px-3 pb-32 pt-4 sm:px-6 sm:pb-36 sm:pt-8">
+    <main className="relative h-[100svh] overflow-hidden bg-transparent">
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden px-3 pb-32 pt-4 sm:px-6 sm:pb-36 sm:pt-8">
         <header className="mb-4 flex items-center justify-between sm:mb-5">
           <p className="text-lg font-light uppercase tracking-[0.24em] text-zinc-400 sm:text-xl sm:tracking-[0.3em]">NOTUBE</p>
           <button
@@ -590,7 +587,7 @@ export default function LandingPage() {
           </button>
         </header>
 
-        <div ref={timelineRef} className="flex max-h-[calc(100svh-10.5rem)] flex-col gap-3 overflow-y-auto pb-6 sm:max-h-[calc(100svh-13rem)] sm:gap-5 sm:pb-8">
+        <div ref={timelineRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-6 sm:gap-5 sm:pb-8">
           <article className="ml-auto max-w-[88%] rounded-2xl border border-zinc-500 bg-zinc-100 px-4 py-3 text-sm leading-relaxed text-zinc-900 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
             {topic}
           </article>
@@ -815,38 +812,29 @@ export default function LandingPage() {
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <button
                       type="button"
-                      onClick={() => setBackupsExpanded((current) => !current)}
-                      className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-100 transition-colors hover:bg-zinc-900"
-                    >
-                      {backupsExpanded ? "Hide backups" : "Open backups"}
-                    </button>
-                    <button
-                      type="button"
                       onClick={() => setScoreStep("result")}
-                      className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-500"
+                      className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-100 transition-colors hover:bg-zinc-900"
                     >
                       Back to result
                     </button>
                   </div>
 
-                  {backupsExpanded ? (
-                    <div className="space-y-2.5">
-                      {backups.map((video, index) => (
-                        <button
-                          key={video.id}
-                          type="button"
-                          onClick={() => switchToVideo(video.id)}
-                          className="w-full rounded-lg border border-zinc-800 p-3.5 text-left transition-colors hover:border-zinc-600"
-                        >
-                          <p className="text-xs text-zinc-500">{index === 0 ? "backup simpler" : "backup deeper"}</p>
-                          <p className="mt-1 text-base text-zinc-100">{video.title}</p>
-                          <p className="text-xs text-zinc-500">
-                            {video.channel} • {video.durationMinutes} min
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
+                  <div className="space-y-2.5">
+                    {backups.map((video, index) => (
+                      <button
+                        key={video.id}
+                        type="button"
+                        onClick={() => switchToVideo(video.id)}
+                        className="w-full rounded-lg border border-zinc-800 p-3.5 text-left transition-colors hover:border-zinc-600"
+                      >
+                        <p className="text-xs text-zinc-500">{index === 0 ? "backup simpler" : "backup deeper"}</p>
+                        <p className="mt-1 text-base text-zinc-100">{video.title}</p>
+                        <p className="text-xs text-zinc-500">
+                          {video.channel} • {video.durationMinutes} min
+                        </p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : null}
 
@@ -888,6 +876,7 @@ export default function LandingPage() {
                   value={composerValue}
                   onChange={(event) => setComposerText(event.target.value)}
                   disabled={composerDisabled}
+                  enterKeyHint="search"
                   placeholder={composerPlaceholder}
                   className="relative z-10 w-full bg-transparent pr-2 text-base text-zinc-100 outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:opacity-80 sm:pr-3"
                 />
