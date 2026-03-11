@@ -533,7 +533,7 @@ export default function LandingPage() {
                 value={composerValue}
                 onChange={(event) => setComposerText(event.target.value)}
                 placeholder={composerPlaceholder}
-                className="w-full bg-transparent pr-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 sm:pr-3 sm:text-base"
+                className="w-full bg-transparent pr-2 text-base text-zinc-100 outline-none placeholder:text-zinc-500 sm:pr-3"
               />
             </label>
           </form>
@@ -752,7 +752,7 @@ export default function LandingPage() {
                   value={feedbackComment}
                   onChange={(event) => setFeedbackComment(event.target.value)}
                   placeholder="Optional: why was this suggestion good or bad?"
-                  className="min-h-20 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-zinc-500"
+                  className="min-h-20 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-base text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-zinc-500 sm:text-sm"
                 />
                 <div className="flex items-center gap-3">
                   <button
@@ -840,7 +840,7 @@ export default function LandingPage() {
                   onChange={(event) => setComposerText(event.target.value)}
                   disabled={composerDisabled}
                   placeholder={composerPlaceholder}
-                  className="relative z-10 w-full bg-transparent pr-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:opacity-80 sm:pr-3 sm:text-base"
+                  className="relative z-10 w-full bg-transparent pr-2 text-base text-zinc-100 outline-none placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:opacity-80 sm:pr-3"
                 />
               </label>
 

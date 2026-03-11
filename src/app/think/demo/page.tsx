@@ -114,7 +114,7 @@ function ThinkDemoContent() {
           value={reflectionText}
           onChange={(event) => setReflectionText(event.target.value)}
           placeholder="Write your reflection..."
-          className="min-h-36 w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-zinc-300"
+          className="min-h-36 w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-base text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-zinc-300 sm:text-sm"
         />
 
         <div className="flex flex-col gap-3 sm:flex-row">
