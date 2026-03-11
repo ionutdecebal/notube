@@ -42,7 +42,7 @@ Support copy:
 
 Search input placeholder:
 
-`Topic, optional filters: beginner, 20 min`
+`Try: electronics basics, beginner, 20 min`
 
 ### Home explainer card
 

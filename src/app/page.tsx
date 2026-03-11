@@ -752,7 +752,7 @@ export default function LandingPage() {
   };
 
   const composerDisabled = stage === "loading" || stage === "reflecting" || stage === "quiz";
-  const composerPlaceholder = "Topic, optional filters: beginner, 20 min";
+  const composerPlaceholder = "Try: electronics basics, beginner, 20 min";
   const composerValue = stage === "reflecting" ? `Think Mode ${toMmss(reflectionSecondsLeft)} • session locked` : composerText;
 
   if (stage === "idle") {
