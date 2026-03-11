@@ -760,11 +760,8 @@ export default function LandingPage() {
       <main className="relative flex min-h-[calc(100svh-4rem)] items-start justify-center px-4 pb-8 pt-8 sm:items-center sm:py-8">
         <div className="w-full max-w-3xl space-y-6 text-center sm:space-y-8">
           <h1 className="text-balance text-3xl font-medium leading-[1.08] tracking-tight text-zinc-100 sm:text-5xl">
-            You opened YouTube to learn.
+            Escape the YouTube algorithm.
           </h1>
-          <p className="text-base font-light text-zinc-300 sm:text-lg">
-            Forty minutes later, you are somewhere else.
-          </p>
           <p className="mx-auto max-w-2xl text-sm text-zinc-400 sm:text-base">
             YouTube is one of the best places to learn practical things. It is also very good at turning a useful search into an
             algorithmic detour. For a lot of people, learning is the reason they keep going back. NOTUBE keeps that reason intact and

@@ -30,11 +30,7 @@
 
 Headline:
 
-`You opened YouTube to learn.`
-
-Subhead:
-
-`Forty minutes later, you are somewhere else.`
+`Escape the YouTube algorithm.`
 
 Support copy:
 
