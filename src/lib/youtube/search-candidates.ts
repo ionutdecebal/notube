@@ -27,8 +27,8 @@ const LIE_YOUTUBE_MODE = process.env.NOTUBE_LIE_YOUTUBE === "1";
 const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 const REQUEST_TIMEOUT_MS = 7000;
 const MAX_RETRIES = 1;
-const SEARCH_RESULTS_PER_QUERY = 15;
-const MAX_CANDIDATES_FOR_DETAILS = 45;
+const SEARCH_RESULTS_PER_QUERY = 50;
+const MAX_CANDIDATES_FOR_DETAILS = 50;
 const AI_SHORTLIST_SIZE = 12;
 
 type CandidateSource = "youtube" | "mock";
@@ -88,11 +88,7 @@ const tokenize = (text: string) =>
 
 const unique = <T>(values: T[]): T[] => Array.from(new Set(values));
 
-const buildQueryVariants = (
-  topic: string,
-  filters: SessionFilters,
-  pass: "primary" | "fallback",
-): string[] => {
+const buildSearchQuery = (topic: string, filters: SessionFilters): string => {
   const difficultyTerm =
     filters.difficulty === "beginner"
       ? "beginner"
@@ -100,26 +96,9 @@ const buildQueryVariants = (
         ? "intermediate"
         : "advanced";
 
-  const modeTerms =
-    filters.lessonMode === "quick-answer"
-      ? ["quick explanation", "overview", "explained"]
-      : ["full tutorial", "deep dive", "complete guide"];
+  const modeTerm = filters.lessonMode === "quick-answer" ? "explained" : "tutorial";
 
-  if (pass === "primary") {
-    return unique([
-      `${topic} ${modeTerms[0]}`,
-      `${topic} tutorial`,
-    ]);
-  }
-
-  return unique([
-    topic,
-    `${topic} explained`,
-    `${topic} ${modeTerms[0]} ${difficultyTerm}`,
-    `${topic} ${modeTerms[1]} ${difficultyTerm}`,
-    `${topic} ${modeTerms[2]} tutorial`,
-    `${topic} ${difficultyTerm}`,
-  ]);
+  return `${topic} ${modeTerm} ${difficultyTerm}`.trim();
 };
 
 const countTokenMatches = (text: string, tokens: string[]): number => {
@@ -550,56 +529,38 @@ export const searchYouTubeCandidates = async (
     };
   }
 
-  const mergedItems = new Map<string, YouTubeSearchItem>();
   let totalAttempts = 0;
   let firstSearchFailure: "timeout" | "rate-limited" | "quota-exceeded" | "http-error" | "network-error" | null = null;
+  const query = buildSearchQuery(topic, filters);
+  const searchParams = new URLSearchParams({
+    part: "snippet",
+    q: query,
+    type: "video",
+    maxResults: String(SEARCH_RESULTS_PER_QUERY),
+    order: "relevance",
+    relevanceLanguage: "en",
+    key: apiKey,
+  });
 
-  for (const pass of ["primary", "fallback"] as const) {
-    const queryVariants = buildQueryVariants(topic, filters, pass);
+  const searchFetch = await fetchYouTubeJson<{ items?: YouTubeSearchItem[] }>(
+    `${API_BASE}/search?${searchParams.toString()}`,
+  );
+  totalAttempts += searchFetch.attempts;
 
-    for (const query of queryVariants) {
-      const searchParams = new URLSearchParams({
-        part: "snippet",
-        q: query,
-        type: "video",
-        maxResults: String(SEARCH_RESULTS_PER_QUERY),
-        order: "relevance",
-        relevanceLanguage: "en",
-        key: apiKey,
-      });
-
-      const searchFetch = await fetchYouTubeJson<{ items?: YouTubeSearchItem[] }>(
-        `${API_BASE}/search?${searchParams.toString()}`,
-      );
-      totalAttempts += searchFetch.attempts;
-
-      if (!searchFetch.ok) {
-        if (!firstSearchFailure) firstSearchFailure = searchFetch.reason;
-        if (searchFetch.reason === "quota-exceeded") {
-          return {
-            candidates: [],
-            source: "mock",
-            fallbackReason: "quota-exceeded",
-            attempts: totalAttempts,
-            ranking: emptyRanking(),
-          };
-        }
-        continue;
-      }
-
-      for (const item of searchFetch.json.items ?? []) {
-        const id = item.id.videoId;
-        if (!id) continue;
-        if (!mergedItems.has(id)) {
-          mergedItems.set(id, item);
-        }
-      }
+  if (!searchFetch.ok) {
+    firstSearchFailure = searchFetch.reason;
+    if (searchFetch.reason === "quota-exceeded") {
+      return {
+        candidates: [],
+        source: "mock",
+        fallbackReason: "quota-exceeded",
+        attempts: totalAttempts,
+        ranking: emptyRanking(),
+      };
     }
-
-    if (mergedItems.size >= 12) break;
   }
 
-  const items = Array.from(mergedItems.values()).slice(0, MAX_CANDIDATES_FOR_DETAILS);
+  const items = (searchFetch.ok ? searchFetch.json.items ?? [] : []).slice(0, MAX_CANDIDATES_FOR_DETAILS);
   const ids = items.map((item) => item.id.videoId).filter((id): id is string => Boolean(id));
 
   if (ids.length === 0) {
