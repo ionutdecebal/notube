@@ -12,6 +12,11 @@ const menuItems = [
   { href: "/account", label: "Account" },
 ];
 
+const legalItems = [
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
+];
+
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -75,6 +80,29 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        <div className="mt-auto border-t border-zinc-800 pt-5">
+          <p className="mb-3 text-xs uppercase tracking-[0.18em] text-zinc-500">Legal</p>
+          <nav className="flex flex-col gap-2">
+            {legalItems.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={`rounded-2xl border px-4 py-3 text-sm transition-colors ${
+                    active
+                      ? "border-zinc-200 bg-zinc-100 text-zinc-900"
+                      : "border-zinc-800 text-zinc-200 hover:border-zinc-600 hover:bg-zinc-950"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
       </aside>
 
       <div className="h-full pt-16">{children}</div>
