@@ -155,6 +155,7 @@ export default function LandingPage() {
   const timelineRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLInputElement | null>(null);
   const playerRootRef = useRef<HTMLDivElement | null>(null);
+  const shouldStickTimelineRef = useRef(true);
   const playerRef = useRef<{
     destroy: () => void;
     getCurrentTime: () => number;
@@ -198,9 +199,24 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    if (!timelineRef.current) return;
-    timelineRef.current.scrollTo({ top: timelineRef.current.scrollHeight, behavior: "smooth" });
-  }, [stage, watchStats.watchedSeconds, reflectionSecondsLeft, quizIndex, quizHistory.length, score]);
+    const timeline = timelineRef.current;
+    if (!timeline) return;
+
+    const handleScroll = () => {
+      const distanceFromBottom = timeline.scrollHeight - timeline.scrollTop - timeline.clientHeight;
+      shouldStickTimelineRef.current = distanceFromBottom < 96;
+    };
+
+    handleScroll();
+    timeline.addEventListener("scroll", handleScroll);
+    return () => timeline.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const timeline = timelineRef.current;
+    if (!timeline || !shouldStickTimelineRef.current) return;
+    timeline.scrollTo({ top: timeline.scrollHeight, behavior: "smooth" });
+  }, [stage, uiError, quizIndex, quizHistory.length, score, scoreStep, reflectionFinished, feedbackSubmitted]);
 
   useEffect(() => {
     if (stage === "idle") {
