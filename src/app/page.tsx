@@ -619,6 +619,8 @@ export default function LandingPage() {
           ? "Search is unavailable because the YouTube API key is missing."
           : reason === "search-rate-limited" || reason === "details-rate-limited"
             ? "Search is temporarily rate limited. Try again shortly."
+            : reason === "search-http-error" || reason === "details-http-error"
+              ? "The YouTube search request was rejected. Check that the API key is valid and allowed for server-side requests."
             : reason === "search-timeout" || reason === "details-timeout" || reason === "network-error"
               ? "Search failed before a usable lesson could be returned."
               : "No strong lesson was found for that topic. Try a different phrasing.";
