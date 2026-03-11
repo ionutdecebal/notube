@@ -34,7 +34,7 @@ Headline:
 
 Support copy:
 
-`YouTube is one of the best places to learn practical things. It is also very good at turning a useful search into an algorithmic detour. For a lot of people, learning is the reason they keep going back. NOTUBE keeps that reason intact and removes the part that pulls you off course.`
+`YouTube may be the best learning platform on the internet. It is also engineered to keep you hooked and distracted. For people trying to quit, learning is often the reason they go back. NOTUBE helps you keep the knowledge without falling back into the loop.`
 
 Search input placeholder:
 

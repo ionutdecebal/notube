@@ -763,9 +763,9 @@ export default function LandingPage() {
             Escape the YouTube algorithm.
           </h1>
           <p className="mx-auto max-w-2xl text-sm text-zinc-400 sm:text-base">
-            YouTube is one of the best places to learn practical things. It is also very good at turning a useful search into an
-            algorithmic detour. For a lot of people, learning is the reason they keep going back. NOTUBE keeps that reason intact and
-            removes the part that pulls you off course.
+            YouTube may be the best learning platform on the internet. It is also engineered to keep you hooked and distracted. For
+            people trying to quit, learning is often the reason they go back. NOTUBE helps you keep the knowledge without falling back
+            into the loop.
           </p>
 
           <form onSubmit={submitComposer} className="mx-auto w-full max-w-2xl">
