@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const menuItems = [
-  { href: "/", label: "Return to lesson" },
+  { href: "/", label: "Lesson" },
   { href: "/history", label: "History" },
   { href: "/stats", label: "Stats" },
-  { href: "/how-it-works", label: "How it works" },
+  { href: "/how-it-works", label: "How It Works" },
   { href: "/account", label: "Account" },
 ];
 
@@ -70,7 +70,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
                     : "border-zinc-800 text-zinc-200 hover:border-zinc-600 hover:bg-zinc-950"
                 }`}
               >
-                {pathname === "/" && item.href === "/" ? "Lesson" : item.label}
+                {item.label}
               </Link>
             );
           })}

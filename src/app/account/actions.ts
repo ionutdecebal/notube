@@ -10,7 +10,7 @@ const redirectWithError = (message: string) => {
 
 export async function signInAction(formData: FormData) {
   if (!auth) {
-    redirectWithError("Auth is not configured yet.");
+    redirectWithError("Account access is not available right now.");
   }
 
   const email = String(formData.get("email") ?? "").trim();
@@ -36,7 +36,7 @@ export async function signInAction(formData: FormData) {
 
 export async function signUpAction(formData: FormData) {
   if (!auth) {
-    redirectWithError("Auth is not configured yet.");
+    redirectWithError("Account access is not available right now.");
   }
 
   const email = String(formData.get("email") ?? "").trim();

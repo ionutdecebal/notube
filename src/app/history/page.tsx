@@ -16,10 +16,10 @@ export default async function HistoryPage() {
     return (
       <AppSectionPage
         eyebrow="History"
-        title="History unlocks with your account."
-        description="Sign in once auth is fully configured to see previous sessions across devices."
+        title="History is not available on this deployment."
+        description="Lesson history depends on account access, and this environment is missing the final auth configuration."
       >
-        <p className="text-sm text-zinc-300">Auth is not configured yet for this deployment.</p>
+        <p className="text-sm text-zinc-300">Once account access is configured, your saved lessons will appear here.</p>
       </AppSectionPage>
     );
   }
@@ -32,9 +32,9 @@ export default async function HistoryPage() {
       <AppSectionPage
         eyebrow="History"
         title="Sign in to view your lesson history."
-        description="Once you are signed in, each saved session will show up here with progress and quiz results."
+        description="Every signed-in lesson is saved here with progress, score, and a direct path back into the session."
       >
-        <p className="text-sm text-zinc-300">Your signed-in sessions will appear here.</p>
+        <p className="text-sm text-zinc-300">Sign in once, and your saved lessons will stay available across devices.</p>
       </AppSectionPage>
     );
   }
@@ -42,14 +42,14 @@ export default async function HistoryPage() {
   const sessions = await getUserSessionSummaries(userId);
 
   return (
-    <AppSectionPage
-      eyebrow="History"
-      title="Your lesson history."
-      description="Saved sessions are grouped here so you can review what you learned, how far you got, and how each lesson performed."
-    >
+      <AppSectionPage
+        eyebrow="History"
+        title="Your lesson history."
+        description="Review past sessions, see what stuck, and jump straight back into any lesson you want to continue."
+      >
       {sessions.length === 0 ? (
         <p className="text-sm text-zinc-300">
-          No saved sessions yet. Start a lesson while signed in and it will show up here.
+          No saved lessons yet. Start a lesson while signed in and it will appear here automatically.
         </p>
       ) : (
         <div className="space-y-4">
@@ -93,7 +93,7 @@ export default async function HistoryPage() {
                   href={`/?sessionId=${encodeURIComponent(entry.id)}`}
                   className="inline-flex rounded-xl border border-zinc-200 px-4 py-2 text-sm text-zinc-100 transition-colors hover:bg-zinc-900"
                 >
-                  Resume lesson
+                  Open lesson
                 </Link>
               </div>
             </article>

@@ -9,10 +9,10 @@ export default async function StatsPage() {
     return (
       <AppSectionPage
         eyebrow="Stats"
-        title="Stats unlock with your account."
-        description="Once auth is configured on this deployment, this page will summarize your signed-in learning activity."
+        title="Stats are not available on this deployment."
+        description="Learning stats depend on account access, and this environment is missing the final auth configuration."
       >
-        <p className="text-sm text-zinc-300">Auth is not configured yet for this deployment.</p>
+        <p className="text-sm text-zinc-300">Once account access is configured, this page will summarize your saved sessions.</p>
       </AppSectionPage>
     );
   }
@@ -25,7 +25,7 @@ export default async function StatsPage() {
       <AppSectionPage
         eyebrow="Stats"
         title="Sign in to see your learning stats."
-        description="Stats are calculated from your saved, signed-in sessions."
+        description="Stats are calculated from your saved lessons, quiz results, watch progress, and feedback."
       >
         <p className="text-sm text-zinc-300">Sign in first, then complete a few lessons to populate this page.</p>
       </AppSectionPage>
@@ -38,7 +38,7 @@ export default async function StatsPage() {
     <AppSectionPage
       eyebrow="Stats"
       title="Your learning stats."
-      description="This is a first pass over your signed-in session data: completion, quiz performance, watch depth, and how often you needed backups."
+      description="Track how consistently you finish lessons, how deeply you watch, and how well the material holds up in the quiz."
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[

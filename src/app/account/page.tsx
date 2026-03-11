@@ -20,13 +20,13 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     return (
       <AppSectionPage
         eyebrow="Account"
-        title="Finish auth configuration."
-        description="Neon Auth is enabled in Neon, but this app still needs the auth base URL exposed to the app before sign-in can work."
+        title="Account setup is not available on this deployment."
+        description="Sign-in is part of the live product, but this environment is missing the final auth configuration."
       >
         <div className="space-y-4 text-sm text-zinc-300">
-          <p>Add `NEON_AUTH_BASE_URL` to Vercel and local envs with the value of your Neon auth URL.</p>
+          <p>Add `NEON_AUTH_BASE_URL` to the deployment environment with the value of your Neon auth URL.</p>
           <p className="text-zinc-500">
-            Neon already added `VITE_NEON_AUTH_URL`, but this server-side SDK expects `NEON_AUTH_BASE_URL`.
+            The server-side auth flow uses `NEON_AUTH_BASE_URL`, not the client-side `VITE_NEON_AUTH_URL` variable.
           </p>
         </div>
       </AppSectionPage>
@@ -40,8 +40,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     return (
       <AppSectionPage
         eyebrow="Account"
-        title="Sign in to unlock synced settings."
-        description="Advanced quiz mode is now an account feature, so sign in to enable and sync it."
+        title="Sign in to save your learning setup."
+        description="Your account syncs quiz mode, lesson history, stats, and resume links across devices."
       >
         <div className="grid gap-5 lg:grid-cols-2">
           <section className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
@@ -76,7 +76,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <section className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Create account</p>
-              <h2 className="text-lg text-zinc-100">Enable account-only settings</h2>
+              <h2 className="text-lg text-zinc-100">Start saving your progress</h2>
             </div>
             <form action={signUpAction} className="space-y-3">
               <input
@@ -123,8 +123,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   return (
     <AppSectionPage
       eyebrow="Account"
-      title={user.name ? `${user.name}, your settings are synced.` : "Your settings are synced."}
-      description="Advanced quiz mode is only available when you are signed in, and it will follow your account across devices."
+      title={user.name ? `${user.name}, your account is ready.` : "Your account is ready."}
+      description="Your settings, history, stats, and saved lesson links are now tied to this account."
     >
       <div className="space-y-5">
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-sm text-zinc-300">

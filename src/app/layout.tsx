@@ -3,8 +3,8 @@ import { AppChrome } from "@/components/app-chrome";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "notube",
-  description: "Distraction-free YouTube learning workflow",
+  title: "NOTUBE",
+  description: "Escape the YouTube algorithm. Keep the knowledge.",
 };
 
 export default function RootLayout({

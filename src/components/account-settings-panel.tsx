@@ -50,7 +50,7 @@ export function AccountSettingsPanel({ initialQuizMode }: AccountSettingsPanelPr
             <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Quiz mode</p>
             <p className="text-base text-zinc-100">Advanced quiz mode</p>
             <p className="text-sm text-zinc-400">
-              Enables a 10-question quiz that starts easy and becomes much harder.
+              Switch from the standard check-in to a 10-question progression that gets more demanding as you go.
             </p>
           </div>
           <button
@@ -78,7 +78,7 @@ export function AccountSettingsPanel({ initialQuizMode }: AccountSettingsPanelPr
         </p>
       ) : null}
 
-      <p>Your quiz preference is synced to your account and will follow you across devices.</p>
+      <p>Your quiz preference is saved to your account and follows you across devices.</p>
     </div>
   );
 }

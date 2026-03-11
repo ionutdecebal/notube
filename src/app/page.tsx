@@ -752,7 +752,7 @@ export default function LandingPage() {
   };
 
   const composerDisabled = stage === "loading" || stage === "reflecting" || stage === "quiz";
-  const composerPlaceholder = "Type a topic (optional: beginner, 20 min, quick)";
+  const composerPlaceholder = "Try: salsa basics, beginner, 20 min";
   const composerValue = stage === "reflecting" ? `Think mode ${toMmss(reflectionSecondsLeft)} • input locked` : composerText;
 
   if (stage === "idle") {
@@ -760,10 +760,13 @@ export default function LandingPage() {
       <main className="relative flex min-h-[calc(100svh-4rem)] items-start justify-center px-4 pb-8 pt-8 sm:items-center sm:py-8">
         <div className="w-full max-w-3xl space-y-6 text-center sm:space-y-8">
           <h1 className="text-balance text-3xl font-medium leading-[1.08] tracking-tight text-zinc-100 sm:text-5xl">
-            Built for focus.
+            Escape the YouTube algorithm.
           </h1>
           <p className="text-base font-light text-zinc-300 sm:text-lg">
-            Distraction-free YouTube for learning.
+            Keep the knowledge.
+          </p>
+          <p className="mx-auto max-w-2xl text-sm text-zinc-400 sm:text-base">
+            NOTUBE turns YouTube into a focused learning loop: one lesson, one reflection, one quiz, and backups only when you need them.
           </p>
 
           <form onSubmit={submitComposer} className="mx-auto w-full max-w-2xl">
@@ -788,13 +791,13 @@ export default function LandingPage() {
             <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">How it works</p>
             <div className="mt-3 space-y-3">
               <p className="text-sm text-zinc-200 sm:text-base">
-                1. Type a topic and get one main lesson chosen for focus.
+                1. Start with a topic and get one lesson picked for clarity, fit, and length.
               </p>
               <p className="text-sm text-zinc-300 sm:text-base">
-                2. Watch without YouTube noise, then do a short reflection.
+                2. Watch without recommendations, comments, or algorithmic drift.
               </p>
               <p className="text-sm text-zinc-300 sm:text-base">
-                3. Take a quick quiz and open backups only if you need another angle.
+                3. Lock it in with Think Mode, a quiz, and optional backup explanations.
               </p>
             </div>
           </section>
@@ -821,10 +824,10 @@ export default function LandingPage() {
 
           {stage === "loading" ? (
             <article className="max-w-[88%] space-y-2 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-sm leading-relaxed text-zinc-300 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
-              <p>{reflectionFinished ? "Generating quiz..." : "Finding the best video and alternatives..."}</p>
+              <p>{reflectionFinished ? "Building your quiz..." : "Choosing the strongest lesson and backup options..."}</p>
               {!reflectionFinished ? (
                 <p className="text-xs text-zinc-500 sm:text-sm">
-                  You&apos;ll get one main lesson first, then a short reflection and quiz.
+                  You&apos;ll get one focused lesson first, then reflection, quiz, and backups if needed.
                 </p>
               ) : null}
             </article>
