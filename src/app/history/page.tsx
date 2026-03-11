@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AppSectionPage } from "@/components/app-section-page";
 import { auth, neonAuthEnabled } from "@/lib/auth";
 import { getUserSessionSummaries } from "@/lib/server/user-history";
@@ -85,6 +86,15 @@ export default async function HistoryPage() {
                   <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Backups opened</p>
                   <p className="mt-2 text-xl text-zinc-100">{entry.backupsOpened}</p>
                 </div>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link
+                  href={`/?sessionId=${encodeURIComponent(entry.id)}`}
+                  className="inline-flex rounded-xl border border-zinc-200 px-4 py-2 text-sm text-zinc-100 transition-colors hover:bg-zinc-900"
+                >
+                  Resume lesson
+                </Link>
               </div>
             </article>
           ))}

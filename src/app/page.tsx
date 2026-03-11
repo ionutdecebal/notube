@@ -10,6 +10,7 @@ import {
   addSkipEvent,
   addSuggestionFeedback,
   getDemoState,
+  hydrateDemoStateFromServer,
   initializeDemoState,
   saveQuizAttempt,
   saveReflection,
@@ -163,6 +164,7 @@ export default function LandingPage() {
     getDuration: () => number;
   } | null>(null);
   const pendingQuizAdvanceRef = useRef(false);
+  const resumedSessionRef = useRef<string | null>(null);
 
   const selectedVideo = candidates.find((video) => video.id === activeVideoId) ?? candidates[0] ?? null;
   const backups = candidates.slice(1, 3);
@@ -235,6 +237,68 @@ export default function LandingPage() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const sessionIdFromUrl = params.get("sessionId")?.trim();
+    if (!sessionIdFromUrl || resumedSessionRef.current === sessionIdFromUrl) {
+      return;
+    }
+
+    resumedSessionRef.current = sessionIdFromUrl;
+
+    const determineStage = (state: ReturnType<typeof getDemoState>): ChatStage => {
+      if (state.learningScore) return "score";
+      if (state.watchProgress.watchedSeconds > 0 || state.watchProgress.watchCompletedAt) return "watching";
+      return "lesson";
+    };
+
+    void hydrateDemoStateFromServer(sessionIdFromUrl).then((state) => {
+      if (!state) {
+        setUiError("Could not restore that saved session.");
+        return;
+      }
+
+      setUiError(null);
+      setTopic(state.session.topic);
+      setSessionId(state.session.id);
+      setCandidates(state.videoCandidates);
+      setActiveVideoId(state.session.selectedVideoId || (state.videoCandidates[0]?.id ?? null));
+      setRetrieval(state.retrieval);
+      setRanking(state.ranking);
+      setWatchStats(state.watchProgress);
+      setReflectionFinished(Boolean(state.reflection));
+      setScore(state.learningScore);
+      setQuizResult(
+        state.quizAttempt && state.learningScore
+          ? {
+              correct: Object.keys(state.quizAttempt.answers).length,
+              total: Object.keys(state.quizAttempt.answers).length,
+            }
+          : null,
+      );
+      setFeedbackSubmitted(state.suggestionFeedback.some((feedback) => feedback.context === "post-quiz"));
+      setFeedbackRating(state.suggestionFeedback.find((feedback) => feedback.context === "post-quiz")?.rating ?? null);
+      setScoreStep(state.learningScore ? "result" : "result");
+      setQuizHistory([]);
+      setQuizAnswers(state.quizAttempt?.answers ?? {});
+      setQuizQuestions([]);
+      setQuizPreparedFor(null);
+      setQuizStatus("idle");
+      setQuizIndex(0);
+      dispatchStage({ type: "SEARCH_READY" });
+
+      const nextStage = determineStage(state);
+      if (nextStage === "watching") {
+        dispatchStage({ type: "START_WATCH" });
+      } else if (nextStage === "score") {
+        dispatchStage({ type: "START_WATCH" });
+        dispatchStage({ type: "QUIZ_SUBMITTED" });
+      }
+    });
   }, []);
 
   const beginReflecting = () => {
