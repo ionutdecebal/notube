@@ -171,6 +171,27 @@ export default function LandingPage() {
   const reflectionProgress = ((THINK_SECONDS - reflectionSecondsLeft) / THINK_SECONDS) * 100;
 
   useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousHtmlOverscroll = html.style.overscrollBehavior;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyOverscroll = body.style.overscrollBehavior;
+
+    html.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+
+    return () => {
+      html.style.overflow = previousHtmlOverflow;
+      html.style.overscrollBehavior = previousHtmlOverscroll;
+      body.style.overflow = previousBodyOverflow;
+      body.style.overscrollBehavior = previousBodyOverscroll;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!timelineRef.current) return;
     timelineRef.current.scrollTo({ top: timelineRef.current.scrollHeight, behavior: "smooth" });
   }, [stage, watchStats.watchedSeconds, reflectionSecondsLeft, quizIndex, quizHistory.length, score]);
