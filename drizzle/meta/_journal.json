@@ -8,6 +8,13 @@
       "when": 1773258724182,
       "tag": "0000_empty_rawhide_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773262138518,
+      "tag": "0001_clumsy_sandman",
+      "breakpoints": true
     }
   ]
 }

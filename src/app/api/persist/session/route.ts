@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { DemoState } from "@/lib/types";
 import { getSessionState, upsertSessionState } from "@/lib/server/persistence";
 
@@ -23,7 +24,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid demo state payload" }, { status: 400 });
   }
 
-  await upsertSessionState(state);
+  const session = auth ? await auth.getSession() : null;
+  await upsertSessionState(state, session?.data?.user?.id ?? null);
   return NextResponse.json({ ok: true, sessionId: state.session.id });
 }
 

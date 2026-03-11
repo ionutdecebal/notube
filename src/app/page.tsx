@@ -4,8 +4,8 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { calculateLearningScore } from "@/lib/scoring";
 import { parseTopicInput } from "@/lib/topic-preferences";
-import { readUserSettings } from "@/lib/user-settings";
-import { LearningScore, QuizQuestion, RankingMeta, RetrievalMeta, VideoCandidate } from "@/lib/types";
+import { DEFAULT_QUIZ_MODE, loadUserSettings } from "@/lib/user-settings";
+import { LearningScore, QuizMode, QuizQuestion, RankingMeta, RetrievalMeta, VideoCandidate } from "@/lib/types";
 import {
   addSkipEvent,
   addSuggestionFeedback,
@@ -147,6 +147,7 @@ export default function LandingPage() {
   const [quizResult, setQuizResult] = useState<{ correct: number; total: number } | null>(null);
   const [score, setScore] = useState<LearningScore | null>(null);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+  const [activeQuizMode, setActiveQuizMode] = useState<QuizMode>(DEFAULT_QUIZ_MODE);
   const [feedbackRating, setFeedbackRating] = useState<"good" | "neutral" | "bad" | null>(null);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [scoreStep, setScoreStep] = useState<"result" | "feedback" | "backups">("result");
@@ -174,7 +175,6 @@ export default function LandingPage() {
 
   const currentQuizQuestion = quizQuestions[quizIndex] ?? null;
   const reflectionProgress = ((THINK_SECONDS - reflectionSecondsLeft) / THINK_SECONDS) * 100;
-  const activeQuizMode = readUserSettings().quizMode;
   const quizRequestKey = selectedVideo ? `${selectedVideo.id}:${activeQuizMode}` : null;
 
   useEffect(() => {
@@ -223,6 +223,19 @@ export default function LandingPage() {
       composerRef.current?.focus();
     }
   }, [stage]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void loadUserSettings().then((payload) => {
+      if (cancelled) return;
+      setActiveQuizMode(payload.authenticated ? payload.settings.quizMode : DEFAULT_QUIZ_MODE);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const beginReflecting = () => {
     setReflectionSecondsLeft(THINK_SECONDS);
@@ -282,14 +295,13 @@ export default function LandingPage() {
 
       try {
         const state = getDemoState();
-        const settings = readUserSettings();
         const response = await fetch("/api/generate-quiz", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             topic: state.session.topic,
             filters: state.session.filters,
-            quizMode: settings.quizMode,
+            quizMode: activeQuizMode,
             selectedVideo: {
               title: selectedVideo.title,
               channel: selectedVideo.channel,
@@ -313,7 +325,7 @@ export default function LandingPage() {
           meta?: QuizMeta;
         };
         const requiredOptionCount = 3;
-        const requiredQuestionCount = settings.quizMode === "advanced" ? 10 : 3;
+        const requiredQuestionCount = activeQuizMode === "advanced" ? 10 : 3;
         const questions =
           payload.questions
             ?.filter((question) => question.options.length === requiredOptionCount)
@@ -346,7 +358,7 @@ export default function LandingPage() {
         }
       }
     },
-    [quizPreparedFor, quizRequestKey, quizStatus, selectedVideo],
+    [activeQuizMode, quizPreparedFor, quizRequestKey, quizStatus, selectedVideo],
   );
 
   const completeReflection = useCallback(() => {

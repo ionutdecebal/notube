@@ -30,7 +30,7 @@ const tokenize = (text: string): string[] =>
     .split(/[^a-z0-9]+/)
     .filter((token) => token.length >= 4);
 
-export const upsertSessionState = async (state: DemoState) => {
+export const upsertSessionState = async (state: DemoState, userId?: string | null) => {
   writeQueue = writeQueue.then(async () => {
     const db = getDb();
     const updatedAt = new Date();
@@ -39,12 +39,14 @@ export const upsertSessionState = async (state: DemoState) => {
       .insert(sessionStates)
       .values({
         id: state.session.id,
+        userId: userId ?? null,
         state,
         updatedAt,
       })
       .onConflictDoUpdate({
         target: sessionStates.id,
         set: {
+          userId: userId ?? null,
           state,
           updatedAt,
         },
