@@ -729,7 +729,7 @@ export default function LandingPage() {
 
   return (
     <main className="relative h-[calc(100svh-4rem)] overflow-hidden bg-transparent">
-      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden px-3 pt-3 sm:px-6 sm:pt-6">
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden px-3 pt-1 sm:px-6 sm:pt-2">
         <div
           ref={timelineRef}
           className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-6 sm:gap-5 sm:pb-8"
