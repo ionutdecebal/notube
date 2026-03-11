@@ -128,21 +128,21 @@ const scoreCandidate = (
   const descLc = description.toLowerCase();
   const haystack = `${titleLc} ${descLc}`;
   const topicLc = topic.toLowerCase();
-  const topicTokens = tokenize(topic).filter((token) => token.length >= 4);
+  const topicTokens = tokenize(topic).filter((token) => token.length >= 3);
 
   const titleMatches = countTokenMatches(titleLc, topicTokens);
   const descMatches = countTokenMatches(descLc, topicTokens);
-
-  // Hard gate: keep out clearly weak matches early.
-  if (!titleLc.includes(topicLc) && titleMatches === 0 && descMatches < 1) {
-    return -100;
-  }
 
   let score = 0;
 
   if (titleLc.includes(topicLc)) score += 8;
   score += titleMatches * 3;
   score += descMatches;
+
+  // Keep weak matches available for fallback ranking, but push them down hard.
+  if (!titleLc.includes(topicLc) && titleMatches === 0 && descMatches === 0) {
+    score -= 10;
+  }
 
   if (/(tutorial|guide|explained|lesson|course|masterclass)/.test(haystack)) score += 3;
   if (/(tips and tricks|lifehack|reaction|funny|meme)/.test(haystack)) score -= 3;
