@@ -42,7 +42,7 @@ Support copy:
 
 Search input placeholder:
 
-`Try: salsa basics, beginner, 20 min`
+`Topic, optional filters: beginner, 20 min`
 
 ### Home explainer card
 

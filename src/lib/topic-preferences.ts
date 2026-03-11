@@ -68,11 +68,36 @@ export const parseTopicInput = (input: string): ParsedTopicInput => {
   }
 
   const match = text.match(/^(.*?)(?:\(([^()]*)\))?\s*$/);
-  const topic = (match?.[1] ?? text).trim();
+  const topicFromParens = (match?.[1] ?? text).trim();
   const preferencesChunk = (match?.[2] ?? "").trim();
-  const preferencesRaw = preferencesChunk
+
+  let topic = topicFromParens;
+  let preferencesRaw = preferencesChunk
     ? preferencesChunk.split(",").map((part) => part.trim()).filter(Boolean)
     : [];
+
+  if (!preferencesRaw.length) {
+    const segments = text.split(",").map((part) => part.trim()).filter(Boolean);
+    const trailingPreferences: string[] = [];
+
+    while (segments.length > 1) {
+      const candidate = segments[segments.length - 1];
+      const isPreference =
+        parseDifficulty(candidate) !== null ||
+        parseLessonMode(candidate) !== null ||
+        parseDuration(candidate) !== null;
+
+      if (!isPreference) break;
+
+      trailingPreferences.unshift(candidate);
+      segments.pop();
+    }
+
+    if (trailingPreferences.length > 0) {
+      topic = segments.join(", ").trim();
+      preferencesRaw = trailingPreferences;
+    }
+  }
 
   const parsed: SessionFilters = { ...defaults };
 
