@@ -1,25 +1,10 @@
 import "server-only";
 
-import { promises as fs } from "node:fs";
-import path from "node:path";
+import { desc, eq } from "drizzle-orm";
+import { getDb } from "@/db";
+import { sessionStates } from "@/db/schema";
 import { DemoState } from "@/lib/types";
 
-const DATA_DIR =
-  process.env.NOTUBE_DATA_DIR ??
-  (process.env.VERCEL ? path.join("/tmp", "notube-data") : path.join(process.cwd(), ".data"));
-const DB_PATH = path.join(DATA_DIR, "notube-db.json");
-
-interface PersistedDB {
-  sessions: Record<
-    string,
-    {
-      state: DemoState;
-      updatedAt: string;
-    }
-  >;
-}
-
-const EMPTY_DB: PersistedDB = { sessions: {} };
 let writeQueue: Promise<void> = Promise.resolve();
 const FEEDBACK_CACHE_TTL_MS = 30_000;
 
@@ -45,48 +30,36 @@ const tokenize = (text: string): string[] =>
     .split(/[^a-z0-9]+/)
     .filter((token) => token.length >= 4);
 
-const ensureDb = async () => {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  try {
-    await fs.access(DB_PATH);
-  } catch {
-    await fs.writeFile(DB_PATH, JSON.stringify(EMPTY_DB, null, 2), "utf-8");
-  }
-};
-
-const readDb = async (): Promise<PersistedDB> => {
-  await ensureDb();
-  try {
-    const raw = await fs.readFile(DB_PATH, "utf-8");
-    const parsed = JSON.parse(raw) as PersistedDB;
-    if (!parsed.sessions || typeof parsed.sessions !== "object") return EMPTY_DB;
-    return parsed;
-  } catch {
-    return EMPTY_DB;
-  }
-};
-
-const writeDb = async (db: PersistedDB) => {
-  await ensureDb();
-  await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2), "utf-8");
-};
-
 export const upsertSessionState = async (state: DemoState) => {
   writeQueue = writeQueue.then(async () => {
-    const db = await readDb();
-    db.sessions[state.session.id] = {
-      state,
-      updatedAt: new Date().toISOString(),
-    };
-    await writeDb(db);
+    const db = getDb();
+    const updatedAt = new Date();
+
+    await db
+      .insert(sessionStates)
+      .values({
+        id: state.session.id,
+        state,
+        updatedAt,
+      })
+      .onConflictDoUpdate({
+        target: sessionStates.id,
+        set: {
+          state,
+          updatedAt,
+        },
+      });
+
     feedbackCache = null;
   });
+
   await writeQueue;
 };
 
 export const getSessionState = async (sessionId: string): Promise<DemoState | null> => {
-  const db = await readDb();
-  return db.sessions[sessionId]?.state ?? null;
+  const db = getDb();
+  const [row] = await db.select().from(sessionStates).where(eq(sessionStates.id, sessionId)).limit(1);
+  return row?.state ?? null;
 };
 
 export const getFeedbackSignals = async (): Promise<FeedbackSignals> => {
@@ -94,12 +67,19 @@ export const getFeedbackSignals = async (): Promise<FeedbackSignals> => {
     return feedbackCache.data;
   }
 
-  const db = await readDb();
+  const db = getDb();
+  const rows = await db
+    .select({
+      state: sessionStates.state,
+    })
+    .from(sessionStates)
+    .orderBy(desc(sessionStates.updatedAt));
+
   const channelWeights: Record<string, number> = {};
   const tokenWeights: Record<string, number> = {};
   let sampleCount = 0;
 
-  for (const sessionEntry of Object.values(db.sessions)) {
+  for (const sessionEntry of rows) {
     const state = sessionEntry.state;
     const feedbackList = state.suggestionFeedback ?? [];
     if (!feedbackList.length) continue;
