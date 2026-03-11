@@ -4,37 +4,36 @@ export default function HowItWorksPage() {
   return (
     <AppSectionPage
       eyebrow="How it works"
-      title="Escape the YouTube algorithm. Keep the knowledge."
-      description="NOTUBE is designed to protect attention while keeping the depth and usefulness of YouTube as a learning source."
+      title="A rabbit hole, on rails."
+      description="NOTUBE is built for people who still need YouTube to learn, but do not trust themselves inside the algorithm."
     >
       <div className="space-y-4 text-sm text-zinc-300 sm:text-base">
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
           <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">What NOTUBE does</p>
           <p className="mt-2">
-            YouTube is one of the best places to learn a skill, but it is also built to keep you moving from one recommendation to the next.
-            NOTUBE narrows that experience into a deliberate study flow: choose a topic, commit to one lesson, reflect on it, and test what
-            you retained before opening anything else.
+            YouTube is an incredible learning tool. It is also engineered to keep attention moving. That is the trap: you open it to learn
+            one thing, and the algorithm turns that intention into a drift pattern. NOTUBE keeps the lesson and removes the feed.
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
           <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Lesson selection</p>
           <p className="mt-2">
-            Each session starts with a single recommended lesson chosen for topic fit, length, clarity, and what has performed best for
-            similar searches.
+            Every session starts with one recommended lesson. Not ten tabs. Not a wall of thumbnails. One starting point chosen for fit,
+            clarity, and length so the session begins with commitment instead of browsing.
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
           <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Focused progression</p>
           <p className="mt-2">
-            After watching, Think Mode forces a short pause for recall. The quiz checks whether the lesson actually landed. Backup videos
-            stay available, but only as deliberate alternatives instead of a recommendation feed.
+            The flow is deliberate: watch, stop, think, then test. Reflection is part of the product because understanding usually feels
+            solid right up until you have to explain it back to yourself. The quiz is there to verify, not entertain.
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
           <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Progress that stays with you</p>
           <p className="mt-2">
-            Signed-in sessions save your settings, history, stats, and the point you reached in a lesson so you can return without starting
-            from scratch.
+            If the first lesson is not enough, NOTUBE opens exactly two paths: one simpler, one deeper. That is the product in one line:
+            a rabbit hole, on rails. You can go further, but only with intent, and only inside a controlled frame.
           </p>
         </div>
       </div>

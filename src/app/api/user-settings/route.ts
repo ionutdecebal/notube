@@ -58,14 +58,14 @@ export async function POST(request: Request) {
   const userId = session?.user?.id;
 
   if (!userId) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    return NextResponse.json({ error: "Sign in to change this setting." }, { status: 401 });
   }
 
   const payload = (await request.json()) as { quizMode?: unknown };
   const quizMode = parseQuizMode(payload.quizMode);
 
   if (!quizMode) {
-    return NextResponse.json({ error: "Invalid quiz mode." }, { status: 400 });
+    return NextResponse.json({ error: "That quiz mode is not valid." }, { status: 400 });
   }
 
   await upsertUserSettings(userId, { quizMode });

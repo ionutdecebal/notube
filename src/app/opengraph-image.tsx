@@ -41,7 +41,7 @@ export default function OpenGraphImage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 20, maxWidth: 920 }}>
           <div style={{ fontSize: 76, lineHeight: 1.02, fontWeight: 600 }}>{SITE_TAGLINE}</div>
           <div style={{ fontSize: 30, lineHeight: 1.35, color: "rgba(244,247,251,0.72)" }}>
-            One lesson, one reflection, one quiz, and backup explanations only when you need them.
+            One lesson. Two backup paths. No feed.
           </div>
         </div>
       </div>

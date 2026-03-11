@@ -9,8 +9,8 @@ export default async function StatsPage() {
     return (
       <AppSectionPage
         eyebrow="Stats"
-        title="Stats are not available on this deployment."
-        description="Learning stats depend on account access, and this environment is missing the final auth configuration."
+        title="Stats are unavailable on this deployment."
+        description="Learning stats depend on account access, and this environment is missing the final setup."
       >
         <p className="text-sm text-zinc-300">Once account access is configured, this page will summarize your saved sessions.</p>
       </AppSectionPage>
@@ -25,9 +25,9 @@ export default async function StatsPage() {
       <AppSectionPage
         eyebrow="Stats"
         title="Sign in to see your learning stats."
-        description="Stats are calculated from your saved lessons, quiz results, watch progress, and feedback."
+        description="Stats turn your saved sessions into a clearer picture of how you actually learn."
       >
-        <p className="text-sm text-zinc-300">Sign in first, then complete a few lessons to populate this page.</p>
+        <p className="text-sm text-zinc-300">Sign in, complete a few sessions, and this page will start to fill in.</p>
       </AppSectionPage>
     );
   }
@@ -37,8 +37,8 @@ export default async function StatsPage() {
   return (
     <AppSectionPage
       eyebrow="Stats"
-      title="Your learning stats."
-      description="Track how consistently you finish lessons, how deeply you watch, and how well the material holds up in the quiz."
+      title="Your stats."
+      description="A simple view of completion, watch depth, quiz performance, and how often you needed extra explanation."
     >
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[
@@ -46,7 +46,7 @@ export default async function StatsPage() {
           { label: "Sessions completed", value: stats.completedCount },
           { label: "Average quiz score", value: stats.averageQuizScore !== null ? `${stats.averageQuizScore}/100` : "N/A" },
           { label: "Average watch depth", value: `${stats.averageWatchPercent}%` },
-          { label: "Backup opens", value: stats.backupOpenCount },
+          { label: "Backup paths opened", value: stats.backupOpenCount },
           { label: "Feedback events", value: stats.feedbackCount },
         ].map((item) => (
           <div key={item.label} className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-5">

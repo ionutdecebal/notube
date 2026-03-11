@@ -20,13 +20,13 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     return (
       <AppSectionPage
         eyebrow="Account"
-        title="Account setup is not available on this deployment."
-        description="Sign-in is part of the live product, but this environment is missing the final auth configuration."
+        title="Account access is unavailable on this deployment."
+        description="This version of NOTUBE is missing the final account configuration."
       >
         <div className="space-y-4 text-sm text-zinc-300">
-          <p>Add `NEON_AUTH_BASE_URL` to the deployment environment with the value of your Neon auth URL.</p>
+          <p>Add `NEON_AUTH_BASE_URL` to the deployment environment using your Neon auth URL.</p>
           <p className="text-zinc-500">
-            The server-side auth flow uses `NEON_AUTH_BASE_URL`, not the client-side `VITE_NEON_AUTH_URL` variable.
+            The server-side auth flow depends on `NEON_AUTH_BASE_URL`, not `VITE_NEON_AUTH_URL`.
           </p>
         </div>
       </AppSectionPage>
@@ -40,8 +40,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
     return (
       <AppSectionPage
         eyebrow="Account"
-        title="Sign in to save your learning setup."
-        description="Your account syncs quiz mode, lesson history, stats, and resume links across devices."
+        title="Save the session. Keep the habit."
+        description="Your account keeps quiz mode, lesson history, stats, and resume links in sync so the product stays consistent wherever you use it."
       >
         <div className="grid gap-5 lg:grid-cols-2">
           <section className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
@@ -76,7 +76,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           <section className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4">
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Create account</p>
-              <h2 className="text-lg text-zinc-100">Start saving your progress</h2>
+              <h2 className="text-lg text-zinc-100">Set up your account</h2>
             </div>
             <form action={signUpAction} className="space-y-3">
               <input
@@ -123,8 +123,8 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
   return (
     <AppSectionPage
       eyebrow="Account"
-      title={user.name ? `${user.name}, your account is ready.` : "Your account is ready."}
-      description="Your settings, history, stats, and saved lesson links are now tied to this account."
+      title={user.name ? `${user.name}, you're set.` : "Your account is ready."}
+      description="Your settings, saved sessions, and learning history now move with you."
     >
       <div className="space-y-5">
         <div className="rounded-2xl border border-zinc-800 bg-zinc-950 px-4 py-4 text-sm text-zinc-300">

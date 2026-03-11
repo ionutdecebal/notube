@@ -32,12 +32,12 @@ export function AccountSettingsPanel({ initialQuizMode }: AccountSettingsPanelPr
         if (!response.ok) {
           const payload = (await response.json()) as { error?: string };
           setQuizMode(advancedEnabled ? "advanced" : "standard");
-          setError(payload.error ?? "Could not save your settings.");
+          setError(payload.error ?? "Your setting could not be saved.");
           return;
         }
       } catch {
         setQuizMode(advancedEnabled ? "advanced" : "standard");
-        setError("Could not save your settings.");
+        setError("Your setting could not be saved.");
       }
     });
   };
@@ -50,7 +50,7 @@ export function AccountSettingsPanel({ initialQuizMode }: AccountSettingsPanelPr
             <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Quiz mode</p>
             <p className="text-base text-zinc-100">Advanced quiz mode</p>
             <p className="text-sm text-zinc-400">
-              Switch from the standard check-in to a 10-question progression that gets more demanding as you go.
+              A longer, sharper quiz that ramps up in difficulty as the session goes on.
             </p>
           </div>
           <button
@@ -78,7 +78,7 @@ export function AccountSettingsPanel({ initialQuizMode }: AccountSettingsPanelPr
         </p>
       ) : null}
 
-      <p>Your quiz preference is saved to your account and follows you across devices.</p>
+      <p>Your quiz preference is saved to your account and used across devices.</p>
     </div>
   );
 }

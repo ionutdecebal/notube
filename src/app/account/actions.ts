@@ -10,14 +10,14 @@ const redirectWithError = (message: string) => {
 
 export async function signInAction(formData: FormData) {
   if (!auth) {
-    redirectWithError("Account access is not available right now.");
+    redirectWithError("Account access is unavailable right now.");
   }
 
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirectWithError("Email and password are required.");
+    redirectWithError("Sign-in failed. Check your details and try again.");
   }
 
   const { error } = await auth!.signIn.email({
@@ -26,7 +26,7 @@ export async function signInAction(formData: FormData) {
   });
 
   if (error) {
-    redirectWithError(error.message ?? "Could not sign in.");
+    redirectWithError(error.message ?? "Sign-in failed. Check your details and try again.");
   }
 
   revalidatePath("/");
@@ -36,7 +36,7 @@ export async function signInAction(formData: FormData) {
 
 export async function signUpAction(formData: FormData) {
   if (!auth) {
-    redirectWithError("Account access is not available right now.");
+    redirectWithError("Account access is unavailable right now.");
   }
 
   const email = String(formData.get("email") ?? "").trim();
@@ -46,7 +46,7 @@ export async function signUpAction(formData: FormData) {
   const name = nameInput || fallbackName;
 
   if (!email || !password) {
-    redirectWithError("Email and password are required.");
+    redirectWithError("Account creation failed. Try again in a moment.");
   }
 
   const { error } = await auth!.signUp.email({
@@ -56,7 +56,7 @@ export async function signUpAction(formData: FormData) {
   });
 
   if (error) {
-    redirectWithError(error.message ?? "Could not create your account.");
+    redirectWithError(error.message ?? "Account creation failed. Try again in a moment.");
   }
 
   revalidatePath("/");

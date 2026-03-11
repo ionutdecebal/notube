@@ -258,7 +258,7 @@ export default function LandingPage() {
 
     void hydrateDemoStateFromServer(sessionIdFromUrl).then((state) => {
       if (!state) {
-        setUiError("Could not restore that saved session.");
+        setUiError("That saved session could not be restored.");
         return;
       }
 
@@ -377,7 +377,7 @@ export default function LandingPage() {
         if (!response.ok) {
           setQuizStatus("error");
           if (pendingQuizAdvanceRef.current) {
-            setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
+            setUiError("The quiz is unavailable right now. Try again in a moment.");
             pendingQuizAdvanceRef.current = false;
             dispatchStage({ type: "QUIZ_FAILED" });
           }
@@ -397,7 +397,7 @@ export default function LandingPage() {
         if (payload.meta?.source !== "ai" || questions.length < requiredQuestionCount) {
           setQuizStatus("error");
           if (pendingQuizAdvanceRef.current) {
-            setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
+            setUiError("The quiz is unavailable right now. Try again in a moment.");
             pendingQuizAdvanceRef.current = false;
             dispatchStage({ type: "QUIZ_FAILED" });
           }
@@ -416,7 +416,7 @@ export default function LandingPage() {
       } catch {
         setQuizStatus("error");
         if (pendingQuizAdvanceRef.current) {
-          setUiError("Quiz generation is unavailable right now. Please try again in a moment.");
+          setUiError("The quiz is unavailable right now. Try again in a moment.");
           pendingQuizAdvanceRef.current = false;
           dispatchStage({ type: "QUIZ_FAILED" });
         }
@@ -616,12 +616,12 @@ export default function LandingPage() {
       const reason = nextRetrieval.fallbackReason;
       const message =
         reason === "missing-api-key"
-          ? "Search is unavailable because the YouTube API key is not configured."
+          ? "Search is unavailable because the YouTube API key is missing."
           : reason === "search-rate-limited" || reason === "details-rate-limited"
-            ? "Search is temporarily rate limited. Please try again shortly."
+            ? "Search is temporarily rate limited. Try again shortly."
             : reason === "search-timeout" || reason === "details-timeout" || reason === "network-error"
-              ? "Search is unavailable right now because the YouTube request failed."
-              : "No usable lesson results were returned. Please try a different topic.";
+              ? "Search failed before a usable lesson could be returned."
+              : "No strong lesson was found for that topic. Try a different phrasing.";
       setUiError(message);
       setCandidates([]);
       setActiveVideoId(null);
@@ -656,10 +656,10 @@ export default function LandingPage() {
     const percentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
     const summary =
       percentage >= 85
-        ? `Strong result: ${correctCount}/${totalCount} correct. You're ready to apply this immediately.`
+        ? `Strong result: ${correctCount}/${totalCount} correct. You understood the material and held onto the important parts.`
         : percentage >= 60
-          ? `Solid start: ${correctCount}/${totalCount} correct. Rewatch key moments and retest to lock it in.`
-          : `Needs reinforcement: ${correctCount}/${totalCount} correct. Rewatch and retest to strengthen understanding.`;
+          ? `Good result: ${correctCount}/${totalCount} correct. The lesson mostly landed, but a second pass would tighten it up.`
+          : `Weak result: ${correctCount}/${totalCount} correct. Go back through the lesson and use a backup path if you need a different angle.`;
 
     const nextScore: LearningScore = {
       sessionId: state.session.id,
@@ -753,7 +753,7 @@ export default function LandingPage() {
 
   const composerDisabled = stage === "loading" || stage === "reflecting" || stage === "quiz";
   const composerPlaceholder = "Try: salsa basics, beginner, 20 min";
-  const composerValue = stage === "reflecting" ? `Think mode ${toMmss(reflectionSecondsLeft)} • input locked` : composerText;
+  const composerValue = stage === "reflecting" ? `Think Mode ${toMmss(reflectionSecondsLeft)} • session locked` : composerText;
 
   if (stage === "idle") {
     return (
@@ -766,7 +766,8 @@ export default function LandingPage() {
             Keep the knowledge.
           </p>
           <p className="mx-auto max-w-2xl text-sm text-zinc-400 sm:text-base">
-            NOTUBE turns YouTube into a focused learning loop: one lesson, one reflection, one quiz, and backups only when you need them.
+            YouTube is one of the best places to learn. It is also one of the best systems ever built for losing an hour without meaning to.
+            NOTUBE keeps the useful part and removes the drift.
           </p>
 
           <form onSubmit={submitComposer} className="mx-auto w-full max-w-2xl">
@@ -791,13 +792,13 @@ export default function LandingPage() {
             <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">How it works</p>
             <div className="mt-3 space-y-3">
               <p className="text-sm text-zinc-200 sm:text-base">
-                1. Start with a topic and get one lesson picked for clarity, fit, and length.
+                1. Pick a topic. NOTUBE gives you one lesson, not an endless feed.
               </p>
               <p className="text-sm text-zinc-300 sm:text-base">
-                2. Watch without recommendations, comments, or algorithmic drift.
+                2. Watch in a clean session built for understanding, not watch time.
               </p>
               <p className="text-sm text-zinc-300 sm:text-base">
-                3. Lock it in with Think Mode, a quiz, and optional backup explanations.
+                3. Reflect, verify what stuck, then choose a simpler or deeper backup path if you need to go further.
               </p>
             </div>
           </section>
@@ -824,10 +825,10 @@ export default function LandingPage() {
 
           {stage === "loading" ? (
             <article className="max-w-[88%] space-y-2 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-sm leading-relaxed text-zinc-300 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
-              <p>{reflectionFinished ? "Building your quiz..." : "Choosing the strongest lesson and backup options..."}</p>
+              <p>{reflectionFinished ? "Building a quiz around what you just watched..." : "Finding the right lesson and two controlled backup paths..."}</p>
               {!reflectionFinished ? (
                 <p className="text-xs text-zinc-500 sm:text-sm">
-                  You&apos;ll get one focused lesson first, then reflection, quiz, and backups if needed.
+                  You get one main lesson first. The rest stays closed unless you choose it.
                 </p>
               ) : null}
             </article>
@@ -835,7 +836,7 @@ export default function LandingPage() {
 
           {stage !== "loading" && selectedVideo ? (
             <article className="max-w-[88%] space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-4 text-sm leading-relaxed text-zinc-200 sm:max-w-[82%] sm:space-y-3.5 sm:px-5 sm:py-4.5 sm:text-base">
-              <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Selected video</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Selected lesson</p>
               <h2 className="text-lg font-medium leading-snug text-zinc-100 sm:text-xl">{selectedVideo.title}</h2>
               <p className="text-sm text-zinc-400 sm:text-base">
                 {selectedVideo.channel} • {selectedVideo.durationMinutes} min
@@ -856,7 +857,7 @@ export default function LandingPage() {
               {stage === "lesson" ? (
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={() => dispatchStage({ type: "START_WATCH" })} className="w-full sm:w-auto">
-                    Start watching
+                    Start session
                   </Button>
                   <Button
                     variant="secondary"
@@ -864,7 +865,7 @@ export default function LandingPage() {
                     className="w-full sm:w-auto"
                     disabled={candidates.length < 2}
                   >
-                    Skip suggestion
+                    Try another pick
                   </Button>
                 </div>
               ) : null}
@@ -875,7 +876,7 @@ export default function LandingPage() {
             <article className="max-w-[96%] space-y-3 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-4 text-sm leading-relaxed text-zinc-200 sm:max-w-[92%] sm:space-y-3.5 sm:px-5 sm:py-4.5 sm:text-base">
               <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Watch</p>
               <p className="text-xs text-zinc-500">
-                Now watching: {selectedVideo.role === "primary" ? "primary pick" : selectedVideo.role}
+                Now watching: {selectedVideo.role === "primary" ? "main lesson" : selectedVideo.role === "backup-simpler" ? "simpler path" : "deeper path"}
               </p>
               {embedId ? (
                 <div className="overflow-hidden rounded-xl border border-zinc-800 bg-black">
@@ -883,13 +884,13 @@ export default function LandingPage() {
                 </div>
               ) : (
                 <p className="rounded-xl border border-zinc-800 p-3 text-zinc-400">
-                  Could not embed this video in chat mode.
+                  This video could not be loaded inside the session.
                 </p>
               )}
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs text-zinc-500">
-                  <span>Watch progress</span>
+                  <span>Progress</span>
                   <span>{watchPercent.toFixed(0)}%</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
@@ -903,10 +904,10 @@ export default function LandingPage() {
                       disabled={!thinkModeUnlocked}
                       className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs text-zinc-100 transition-colors hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                      Go to Think Mode
+                      Enter Think Mode
                     </button>
                     <p className="mt-2 text-xs text-zinc-500">
-                      Unlocks at 85%. Auto-advances when the video reaches 100%.
+                      Unlocks at 85%. The session moves forward automatically at 100%.
                     </p>
                   </div>
                 ) : null}
@@ -916,13 +917,13 @@ export default function LandingPage() {
 
           {(stage === "reflecting" || stage === "quiz" || stage === "score") && (
             <article className="max-w-[88%] rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 text-sm leading-relaxed text-zinc-300 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
-              Think Mode: pause and mentally reconstruct the core idea, failure modes, and one action you can take.
+              Think Mode is where you prove to yourself that you were paying attention. Reconstruct the idea, the key moves, and where it could break.
             </article>
           )}
 
           {reflectionFinished ? (
             <article className="ml-auto max-w-[88%] rounded-2xl border border-zinc-500 bg-zinc-100 px-4 py-3 text-sm leading-relaxed text-zinc-900 sm:max-w-[82%] sm:px-5 sm:py-3.5 sm:text-base">
-              60-second reflection completed.
+              Think Mode complete.
             </article>
           ) : null}
 
@@ -954,7 +955,7 @@ export default function LandingPage() {
 
           {stage === "score" && score ? (
             <article className="max-w-[94%] space-y-4 rounded-2xl border border-zinc-800 bg-zinc-950/80 px-4 py-4 text-sm leading-relaxed text-zinc-200 sm:max-w-[90%] sm:space-y-4.5 sm:px-5 sm:py-4.5 sm:text-base">
-              <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Viewing score</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Understanding score</p>
               <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-zinc-500">
                 <span className={scoreStep === "result" ? "text-zinc-200" : ""}>1 Result</span>
                 <span>/</span>
@@ -982,21 +983,21 @@ export default function LandingPage() {
                       onClick={restartCurrentLesson}
                       className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-100 transition-colors hover:bg-zinc-900"
                     >
-                      Rewatch and retest
+                      Run it again
                     </button>
                     <button
                       type="button"
                       onClick={() => setScoreStep("feedback")}
                       className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-500"
                     >
-                      Rate this pick
+                      Rate this lesson
                     </button>
                     <button
                       type="button"
                       onClick={() => setScoreStep("backups")}
                       className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-500"
                     >
-                      View backups
+                      Open backup paths
                     </button>
                   </div>
                 </div>
@@ -1004,12 +1005,12 @@ export default function LandingPage() {
 
               {scoreStep === "feedback" ? (
                 <div className="space-y-3.5 rounded-xl border border-zinc-800 p-3.5">
-                  <p className="text-sm text-zinc-300">How was this pick?</p>
+                  <p className="text-sm text-zinc-300">How was this lesson?</p>
                   <div className="flex flex-col gap-2 sm:flex-row">
                     {[
-                      { label: "Good pick", value: "good" as const },
-                      { label: "Okay pick", value: "neutral" as const },
-                      { label: "Bad pick", value: "bad" as const },
+                      { label: "Strong pick", value: "good" as const },
+                      { label: "Good enough", value: "neutral" as const },
+                      { label: "Wrong direction", value: "bad" as const },
                     ].map((item) => (
                       <button
                         key={item.value}
@@ -1046,7 +1047,7 @@ export default function LandingPage() {
 
               {scoreStep === "backups" ? (
                 <div className="space-y-3.5 rounded-xl border border-zinc-800 p-3.5">
-                  <p className="text-sm text-zinc-300">Backups are available if you want another lesson.</p>
+                  <p className="text-sm text-zinc-300">Need another angle? Here are two controlled paths forward.</p>
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <button
                       type="button"
@@ -1065,7 +1066,7 @@ export default function LandingPage() {
                         onClick={() => switchToVideo(video.id)}
                         className="w-full rounded-lg border border-zinc-800 p-3.5 text-left transition-colors hover:border-zinc-600"
                       >
-                        <p className="text-xs text-zinc-500">{index === 0 ? "backup simpler" : "backup deeper"}</p>
+                        <p className="text-xs text-zinc-500">{index === 0 ? "Simpler path" : "Deeper path"}</p>
                         <p className="mt-1 text-base text-zinc-100">{video.title}</p>
                         <p className="text-xs text-zinc-500">
                           {video.channel} • {video.durationMinutes} min
@@ -1085,7 +1086,7 @@ export default function LandingPage() {
             {stage === "quiz" && currentQuizQuestion ? (
               <div className="rounded-2xl border border-white/80 bg-transparent px-3 py-3 sm:px-4 sm:py-3.5">
                 <p className="mb-2 text-xs text-zinc-500">
-                  Pick one answer from {currentQuizQuestion.options.length} choices
+                  Choose one answer
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {currentQuizQuestion.options.map((option) => (

@@ -16,10 +16,10 @@ export default async function HistoryPage() {
     return (
       <AppSectionPage
         eyebrow="History"
-        title="History is not available on this deployment."
-        description="Lesson history depends on account access, and this environment is missing the final auth configuration."
+        title="History is unavailable on this deployment."
+        description="Saved sessions depend on account access, and this environment is missing the final setup."
       >
-        <p className="text-sm text-zinc-300">Once account access is configured, your saved lessons will appear here.</p>
+        <p className="text-sm text-zinc-300">Once account access is configured, your saved sessions will appear here.</p>
       </AppSectionPage>
     );
   }
@@ -31,10 +31,10 @@ export default async function HistoryPage() {
     return (
       <AppSectionPage
         eyebrow="History"
-        title="Sign in to view your lesson history."
-        description="Every signed-in lesson is saved here with progress, score, and a direct path back into the session."
+        title="Sign in to see your saved sessions."
+        description="History keeps a record of what you studied, how far you got, and where to pick it back up."
       >
-        <p className="text-sm text-zinc-300">Sign in once, and your saved lessons will stay available across devices.</p>
+        <p className="text-sm text-zinc-300">Once you sign in, every saved session stays attached to your account.</p>
       </AppSectionPage>
     );
   }
@@ -44,12 +44,12 @@ export default async function HistoryPage() {
   return (
       <AppSectionPage
         eyebrow="History"
-        title="Your lesson history."
-        description="Review past sessions, see what stuck, and jump straight back into any lesson you want to continue."
+        title="Your history."
+        description="A clean record of what you studied, what landed, and where you might want to return."
       >
       {sessions.length === 0 ? (
         <p className="text-sm text-zinc-300">
-          No saved lessons yet. Start a lesson while signed in and it will appear here automatically.
+          No saved sessions yet. Start a lesson while signed in and it will appear here automatically.
         </p>
       ) : (
         <div className="space-y-4">
@@ -79,11 +79,11 @@ export default async function HistoryPage() {
                   </p>
                 </div>
                 <div className="rounded-xl border border-zinc-800 px-3 py-3">
-                  <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Think mode</p>
+                  <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Think Mode</p>
                   <p className="mt-2 text-xl text-zinc-100">{entry.reflectionCompleted ? "Done" : "Pending"}</p>
                 </div>
                 <div className="rounded-xl border border-zinc-800 px-3 py-3">
-                  <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Backups opened</p>
+                  <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Backup paths opened</p>
                   <p className="mt-2 text-xl text-zinc-100">{entry.backupsOpened}</p>
                 </div>
               </div>
