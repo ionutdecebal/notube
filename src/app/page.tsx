@@ -729,8 +729,11 @@ export default function LandingPage() {
 
   return (
     <main className="relative h-[calc(100svh-4rem)] overflow-hidden bg-transparent">
-      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden px-3 pb-44 pt-3 sm:px-6 sm:pb-40 sm:pt-6">
-        <div ref={timelineRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-8 sm:gap-5 sm:pb-10">
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden px-3 pb-64 pt-3 sm:px-6 sm:pb-56 sm:pt-6">
+        <div
+          ref={timelineRef}
+          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain pb-24 [scroll-padding-bottom:14rem] sm:gap-5 sm:pb-20 sm:[scroll-padding-bottom:12rem]"
+        >
           {uiError ? (
             <article className="max-w-[94%] rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-100 sm:max-w-[90%] sm:px-5 sm:py-3.5 sm:text-base">
               {uiError}
@@ -997,6 +1000,8 @@ export default function LandingPage() {
               {sessionId ? <p className="text-xs text-zinc-600">Session {sessionId}</p> : null}
             </article>
           ) : null}
+
+          <div aria-hidden="true" className="h-24 shrink-0 sm:h-16" />
         </div>
       </div>
 
