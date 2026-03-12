@@ -492,6 +492,35 @@ const fetchYouTubeJson = async <T>(url: string): Promise<
   return { ok: false, reason: "network-error", attempts: attemptCount };
 };
 
+const fetchYouTubeJsonWithKeys = async <T>(
+  buildUrl: (apiKey: string) => string,
+  apiKeys: string[],
+): Promise<
+  | { ok: true; json: T; attempts: number }
+  | { ok: false; reason: "timeout" | "rate-limited" | "quota-exceeded" | "http-error" | "network-error"; attempts: number }
+> => {
+  let totalAttempts = 0;
+  let firstFailure: "timeout" | "rate-limited" | "quota-exceeded" | "http-error" | "network-error" | null = null;
+
+  for (const apiKey of apiKeys) {
+    const result = await fetchYouTubeJson<T>(buildUrl(apiKey));
+    totalAttempts += result.attempts;
+
+    if (result.ok) {
+      return { ok: true, json: result.json, attempts: totalAttempts };
+    }
+
+    if (!firstFailure) firstFailure = result.reason;
+
+    // Try the backup key only when the current key is exhausted or rejected.
+    if (result.reason !== "quota-exceeded" && result.reason !== "http-error") {
+      return { ok: false, reason: result.reason, attempts: totalAttempts };
+    }
+  }
+
+  return { ok: false, reason: firstFailure ?? "network-error", attempts: totalAttempts };
+};
+
 const emptyRanking = (): RankingMeta => ({
   strategy: "deterministic",
   aiUsed: false,
@@ -518,8 +547,13 @@ export const searchYouTubeCandidates = async (
     };
   }
 
-  const apiKey = process.env.YOUTUBE_API_KEY;
-  if (!apiKey) {
+  const apiKeys = unique(
+    [process.env.YOUTUBE_API_KEY?.trim(), process.env.YOUTUBE_API_KEY_BACKUP?.trim()].filter(
+      (value): value is string => Boolean(value),
+    ),
+  );
+
+  if (apiKeys.length === 0) {
     return {
       candidates: [],
       source: "mock",
@@ -539,11 +573,11 @@ export const searchYouTubeCandidates = async (
     maxResults: String(SEARCH_RESULTS_PER_QUERY),
     order: "relevance",
     relevanceLanguage: "en",
-    key: apiKey,
   });
 
-  const searchFetch = await fetchYouTubeJson<{ items?: YouTubeSearchItem[] }>(
-    `${API_BASE}/search?${searchParams.toString()}`,
+  const searchFetch = await fetchYouTubeJsonWithKeys<{ items?: YouTubeSearchItem[] }>(
+    (apiKey) => `${API_BASE}/search?${new URLSearchParams({ ...Object.fromEntries(searchParams), key: apiKey }).toString()}`,
+    apiKeys,
   );
   totalAttempts += searchFetch.attempts;
 
@@ -595,11 +629,11 @@ export const searchYouTubeCandidates = async (
   const videosParams = new URLSearchParams({
     part: "contentDetails",
     id: ids.join(","),
-    key: apiKey,
   });
 
-  const detailsFetch = await fetchYouTubeJson<{ items?: YouTubeVideoItem[] }>(
-    `${API_BASE}/videos?${videosParams.toString()}`,
+  const detailsFetch = await fetchYouTubeJsonWithKeys<{ items?: YouTubeVideoItem[] }>(
+    (apiKey) => `${API_BASE}/videos?${new URLSearchParams({ ...Object.fromEntries(videosParams), key: apiKey }).toString()}`,
+    apiKeys,
   );
   totalAttempts += detailsFetch.attempts;
 
